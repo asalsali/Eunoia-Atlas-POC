@@ -1,6 +1,7 @@
 import { XummSdk } from 'xumm-sdk';
+import { Client, TrustSet, Payment } from 'xrpl';
 
-// Initialize Xumm SDK
+// Initialize Xumm SDK with real credentials
 const xumm = new XummSdk(
   process.env.REACT_APP_XUMM_API_KEY || 'your-api-key',
   process.env.REACT_APP_XUMM_API_SECRET || 'your-api-secret'
@@ -11,32 +12,41 @@ function convertStringToHex(str: string): string {
   return Buffer.from(str).toString('hex');
 }
 
-// Create RLUSD trust line
+// Create RLUSD trust line using XRPL.js
 export async function createRlusdTrustLine(wallet: any) {
-  const client = new (window as any).xrpl.Client('wss://s.altnet.rippletest.net:51233');
-  await client.connect();
+  try {
+    const client = new Client('wss://s.altnet.rippletest.net:51233');
+    await client.connect();
 
-  let transaction = {
-    TransactionType: "TrustSet",
-    Account: wallet.classicAddress,
-    LimitAmount: {
-      currency: '524C555344000000000000000000000000000000',  // RLUSD
-      issuer: 'rQhWct2fv4Vc4KRjRgMrxa8xPN9Zx9iLKV',  // Ripple
-      value: '100000000'
+    const transaction: TrustSet = {
+      TransactionType: "TrustSet",
+      Account: wallet.classicAddress,
+      LimitAmount: {
+        currency: '524C555344000000000000000000000000000000',  // RLUSD
+        issuer: 'rQhWct2fv4Vc4KRjRgMrxa8xPN9Zx9iLKV',  // Ripple
+        value: '100000000'
+      }
+    };
+
+    const prepared = await client.autofill(transaction);
+    const result = await client.submitAndWait(prepared, { wallet });
+    client.disconnect();
+
+    // Check if the transaction was successful
+    const meta = result.result.meta;
+    if (typeof meta === 'string') {
+      return meta === "tesSuccess";
+    } else if (meta && 'TransactionResult' in meta) {
+      return meta.TransactionResult === "tesSuccess";
     }
-  };
-
-  transaction = await client.autofill(transaction);
-
-  const result = await client.submitAndWait(transaction, {
-    wallet: wallet
-  });
-  client.disconnect();
-
-  return result.result.meta.TransactionResult === "tesSuccess";
+    return false;
+  } catch (error) {
+    console.error('Error creating trust line:', error);
+    return false;
+  }
 }
 
-// Get QR code URL for payment
+// Get QR code URL for payment using real Xumm API
 export async function getQRCodeURL(
   destination: string, 
   transactionId: string, 
@@ -56,22 +66,22 @@ export async function getQRCodeURL(
   };
 
   const request = {
-    txjson: {
-      TransactionType: 'Payment',
-      Destination: destination,
-      Memos: [memo],
-      Amount: amount,
-    },
-    options: {
-      expire: validity,
-    },
+    TransactionType: 'Payment' as const,
+    Destination: destination,
+    Memos: [memo],
+    Amount: amount,
   };
 
-  const payload = await xumm.payload.create(request, true);
-  return payload.refs.qr_png;
+  try {
+    const payload = await xumm.payload.create(request);
+    return payload?.refs?.qr_png || '';
+  } catch (error) {
+    console.error('Error creating Xumm payload:', error);
+    throw error;
+  }
 }
 
-// Create donation payment
+// Create donation payment using real Xumm API
 export async function createDonationPayment(
   destination: string,
   transactionId: string,
@@ -97,27 +107,39 @@ export async function createDonationPayment(
   };
 
   const request = {
-    txjson: {
-      TransactionType: 'Payment',
-      Destination: destination,
-      Memos: [memo],
-      Amount: amountObj,
-    },
-    options: {
-      expire: 129600, // 90 days
-    },
+    TransactionType: 'Payment' as const,
+    Destination: destination,
+    Memos: [memo],
+    Amount: amountObj,
   };
 
-  return await xumm.payload.create(request, true);
+  try {
+    return await xumm.payload.create(request);
+  } catch (error) {
+    console.error('Error creating donation payment:', error);
+    throw error;
+  }
 }
 
-// Check payment status
+// Check payment status using real Xumm API
 export async function checkPaymentStatus(payloadId: string): Promise<any> {
-  return await xumm.payload.get(payloadId);
+  try {
+    return await xumm.payload.get(payloadId);
+  } catch (error) {
+    console.error('Error checking payment status:', error);
+    throw error;
+  }
 }
 
-// Get payment QR code
+// Get payment QR code using real Xumm API
 export async function getPaymentQRCode(payloadId: string): Promise<string> {
-  const payload = await xumm.payload.get(payloadId);
-  return payload.refs.qr_png;
+  try {
+    const payload = await xumm.payload.get(payloadId);
+    // Handle the response structure properly
+    const response = payload as any;
+    return response?.refs?.qr_png || '';
+  } catch (error) {
+    console.error('Error getting payment QR code:', error);
+    throw error;
+  }
 } 

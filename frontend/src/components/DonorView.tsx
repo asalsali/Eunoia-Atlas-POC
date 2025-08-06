@@ -11,11 +11,15 @@ const DonorView: React.FC = () => {
   const [totals, setTotals] = useState<DonationStats>({});
   const [loading, setLoading] = useState(true);
 
+  console.log('DonorView component rendering...');
+
   useEffect(() => {
     const fetchTotals = async () => {
       try {
+        console.log('Fetching totals from API...');
         const response = await fetch('http://localhost:8000/totals');
         const data = await response.json();
+        console.log('Totals received:', data);
         setTotals(data);
       } catch (error) {
         console.error('Failed to fetch totals:', error);
@@ -30,6 +34,8 @@ const DonorView: React.FC = () => {
   if (loading) {
     return <div className="donor-loading">Loading donation insights...</div>;
   }
+
+  console.log('Rendering DonorView with totals:', totals);
 
   return (
     <div className="donor-view">
@@ -105,23 +111,29 @@ const DonorView: React.FC = () => {
       <div className="donor-features">
         <h2>Why Choose Eunoia Atlas?</h2>
         <div className="features-grid">
-          <div className="feature">
+          <div className="feature-card">
             <h3>🔒 Privacy First</h3>
-            <p>Your identity is protected through cryptographic hashing</p>
+            <p>Your identity is protected through cryptographic hashing. No personal data is ever shared between organizations.</p>
           </div>
-          <div className="feature">
-            <h3>🌐 Transparent</h3>
-            <p>All transactions are publicly verifiable on the blockchain</p>
+          <div className="feature-card">
+            <h3>🌐 Blockchain Transparency</h3>
+            <p>All donations are publicly verifiable on the XRPL blockchain while maintaining donor privacy.</p>
           </div>
-          <div className="feature">
-            <h3>🤝 Federated Learning</h3>
-            <p>Charities collaborate without sharing sensitive data</p>
+          <div className="feature-card">
+            <h3>🤝 Collaborative Insights</h3>
+            <p>Charities can share donor patterns and insights without compromising individual privacy.</p>
           </div>
-          <div className="feature">
-            <h3>💎 Real-time</h3>
-            <p>Instant confirmation and tracking of your donations</p>
+          <div className="feature-card">
+            <h3>📱 Mobile Payments</h3>
+            <p>Scan QR codes with Xumm/Xaman for secure, instant donations using RLUSD tokens.</p>
           </div>
         </div>
+      </div>
+
+      <div className="donor-cta">
+        <h2>Ready to Make a Difference?</h2>
+        <p>Join our community of donors and help create positive change through privacy-preserving charitable giving.</p>
+        <a href="/donate" className="cta-button">Start Donating</a>
       </div>
     </div>
   );

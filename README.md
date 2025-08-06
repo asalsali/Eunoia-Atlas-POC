@@ -6,6 +6,7 @@ A privacy-preserving charitable giving platform that uses blockchain and federat
 
 ### Prerequisites
 - Docker and Docker Compose
+- Xumm API credentials (for payment processing)
 
 ### Get Started in 3 Steps
 
@@ -16,12 +17,20 @@ A privacy-preserving charitable giving platform that uses blockchain and federat
    cp .env.template .env
    ```
 
-2. **Start the platform**
+2. **Configure Xumm API**
+   - Get your Xumm API credentials from [Xumm Developer Console](https://apps.xumm.dev/)
+   - Update `.env` with your API key and secret:
+     ```
+     REACT_APP_XUMM_API_KEY=your-xumm-api-key
+     REACT_APP_XUMM_API_SECRET=your-xumm-api-secret
+     ```
+
+3. **Start the platform**
    ```bash
    docker-compose up -d
    ```
 
-3. **Open the application**
+4. **Open the application**
    - **Frontend**: http://localhost:3000
    - **Backend API**: http://localhost:8000
    - **API Docs**: http://localhost:8000/docs
@@ -33,12 +42,14 @@ A privacy-preserving charitable giving platform that uses blockchain and federat
 - **Transparent**: All donations are publicly verifiable on the XRPL blockchain
 - **Real-time**: Instant confirmation and tracking of your donations
 - **Role-Based Views**: Switch between donor, charity staff, and admin perspectives
+- **Xumm Integration**: Scan QR codes with Xumm/Xaman for secure payments
 
 ### For Charities
 - **Collaborative Insights**: Share donor patterns without sharing sensitive data
 - **Advanced Analytics**: Federated learning provides predictive insights
 - **Privacy Preserved**: Zero personal data is ever shared between organizations
 - **Organization Switching**: Toggle between MEDA and TARA views
+- **Direct RLUSD Receipt**: Receive payments directly in RLUSD tokens
 
 ### For Platform Admins
 - **Organization Onboarding**: Add new charities to the platform
@@ -49,11 +60,12 @@ A privacy-preserving charitable giving platform that uses blockchain and federat
 ## 🏗️ Architecture
 
 ### Core Components
-- **Frontend**: React application with role-based views
+- **Frontend**: React application with role-based views and Xumm integration
 - **Backend**: FastAPI server with XRPL integration
 - **Database**: PostgreSQL for transaction storage
 - **FL System**: Federated learning for privacy-preserving analytics
 - **XRPL Listener**: Real-time blockchain transaction monitoring
+- **Xumm SDK**: Payment processing and QR code generation
 
 ### Services
 - `frontend`: React web application (port 3000)
@@ -70,12 +82,14 @@ A privacy-preserving charitable giving platform that uses blockchain and federat
 - Platform overview and statistics
 - Information about supported charities
 - Privacy and transparency features
+- Xumm payment integration with QR codes
 
 ### 🏢 Charity Staff View
 - Organization-specific analytics
 - Donor insights and engagement levels
 - Federated learning collaboration metrics
 - Blockchain transparency features
+- RLUSD payment tracking
 
 ### ⚙️ Super Admin View
 - Platform health monitoring
@@ -88,7 +102,8 @@ A privacy-preserving charitable giving platform that uses blockchain and federat
 ### Core Endpoints
 - `GET /totals` - Get donation totals by charity
 - `GET /scores/{charity}` - Get donor insights for a charity
-- `POST /donate` - Process a new donation
+- `POST /donate` - Process a new donation (legacy)
+- `POST /xumm/confirm-payment` - Handle Xumm payment confirmations
 - `GET /payout/{charity}` - Get payout information
 
 ### Health & Status
@@ -99,6 +114,8 @@ A privacy-preserving charitable giving platform that uses blockchain and federat
 - **JSON Schema Validation**: All donation memos validated against `edms_schema.json`
 - **CORS Support**: Cross-origin requests enabled for frontend
 - **Real-time Monitoring**: XRPL transaction listener for live updates
+- **Xumm Integration**: QR code payments with mobile wallet support
+- **RLUSD Support**: Native support for Ripple USD tokens
 
 ## 📊 Current Data
 
@@ -107,13 +124,14 @@ The platform currently supports:
 - **TARA**: 1 donor, $2,500 total
 - **FL Clients**: Both online and actively training
 - **Privacy Level**: Maximum protection
+- **Payment Methods**: Xumm QR codes and direct XRPL transactions
 
 ## 🛠️ Development
 
 ### Project Structure
 ```
 Eunoia-Atlas-POC/
-├── frontend/           # React application
+├── frontend/           # React application with Xumm integration
 ├── backend/           # FastAPI server
 ├── docker-compose.yml # Service orchestration
 └── .env.template     # Environment configuration
@@ -121,6 +139,7 @@ Eunoia-Atlas-POC/
 
 ### Key Files
 - `frontend/src/components/` - React components for different user views
+- `frontend/src/services/xummService.ts` - Xumm payment integration
 - `backend/main.py` - FastAPI application
 - `backend/fl/` - Federated learning implementation
 - `backend/sql/` - Database schema and views
@@ -140,6 +159,7 @@ Eunoia-Atlas-POC/
 - **Cryptographic Protection**: Donor identities are hashed
 - **Blockchain Transparency**: All transactions are verifiable
 - **Federated Learning**: Models trained without data leaving organizations
+- **Xumm Security**: Payments processed through secure Xumm infrastructure
 
 ## 🐛 Troubleshooting
 
@@ -160,6 +180,11 @@ docker-compose logs api
 docker-compose logs db
 ```
 
+**Xumm payment issues**
+- Verify API credentials in `.env`
+- Check Xumm Developer Console for payload status
+- Ensure RLUSD trust lines are set up
+
 ### Reset Everything
 ```bash
 docker-compose down -v
@@ -175,6 +200,10 @@ Copy `.env.template` to `.env` and configure:
 - `FL_SERVER_HOST`: Federated learning server host
 - `BACKEND_HOST`: Backend server host (default: 0.0.0.0)
 - `BACKEND_PORT`: Backend server port (default: 8000)
+- `REACT_APP_XUMM_API_KEY`: Your Xumm API key
+- `REACT_APP_XUMM_API_SECRET`: Your Xumm API secret
+- `MEDA_WALLET_ADDRESS`: MEDA charity wallet address
+- `TARA_WALLET_ADDRESS`: TARA charity wallet address
 
 ## 🤝 Contributing
 
