@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Heart, CheckCircle, AlertCircle } from 'lucide-react';
-import { makeDonation } from '../services/api';
+import React, { useState, useEffect } from 'react';
+import { Heart, CheckCircle, AlertCircle, QrCode, Smartphone } from 'lucide-react';
+import { createDonationPayment, checkPaymentStatus } from '../services/xummService';
 import './DonationForm.css';
 
 interface DonationFormData {
@@ -8,6 +8,13 @@ interface DonationFormData {
   cid: string;
   amount: number;
   donor_email: string;
+}
+
+interface PaymentStatus {
+  payloadId: string;
+  qrCodeUrl: string;
+  status: 'pending' | 'completed' | 'failed';
+  transactionHash?: string;
 }
 
 const DonationForm: React.FC = () => {
@@ -19,8 +26,14 @@ const DonationForm: React.FC = () => {
   });
   
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Charity wallet addresses (you'll need to set these up)
+  const charityWallets = {
+    'MEDA': 'rQhWct2fv4Vc4KRjRgMrxa8xPN9Zx9iLKV', // Replace with actual MEDA wallet
+    'TARA': 'rQhWct2fv4Vc4KRjRgMrxa8xPN9Zx9iLKV'  // Replace with actual TARA wallet
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -34,23 +47,63 @@ const DonationForm: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccess(null);
+    setPaymentStatus(null);
 
     try {
-      const result = await makeDonation(formData);
-      setSuccess(`Donation successful! Transaction: ${result.tx}`);
-      setFormData({
-        charity: 'MEDA',
-        cid: '',
-        amount: 0,
-        donor_email: ''
+      const transactionId = `DONATION_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const destination = charityWallets[formData.charity as keyof typeof charityWallets];
+      
+      const payload = await createDonationPayment(
+        destination,
+        transactionId,
+        formData.amount,
+        formData.charity,
+        formData.cid
+      );
+
+      setPaymentStatus({
+        payloadId: payload.uuid,
+        qrCodeUrl: payload.refs.qr_png,
+        status: 'pending'
       });
+
+      // Start polling for payment status
+      pollPaymentStatus(payload.uuid);
+
     } catch (err) {
-      setError('Failed to process donation. Please try again.');
-      console.error('Donation error:', err);
+      setError('Failed to create payment. Please try again.');
+      console.error('Payment creation error:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const pollPaymentStatus = async (payloadId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const status = await checkPaymentStatus(payloadId);
+        
+        if (status.response?.dispatched_result === 'tesSUCCESS') {
+          setPaymentStatus(prev => prev ? {
+            ...prev,
+            status: 'completed',
+            transactionHash: status.response.txid
+          } : null);
+          clearInterval(interval);
+        } else if (status.response?.dispatched_result === 'tecPATH_DRY') {
+          setPaymentStatus(prev => prev ? {
+            ...prev,
+            status: 'failed'
+          } : null);
+          clearInterval(interval);
+        }
+      } catch (err) {
+        console.error('Error checking payment status:', err);
+      }
+    }, 2000); // Check every 2 seconds
+
+    // Stop polling after 5 minutes
+    setTimeout(() => clearInterval(interval), 300000);
   };
 
   const isValidForm = formData.cid.trim() && formData.amount > 0;
@@ -60,138 +113,159 @@ const DonationForm: React.FC = () => {
       <div className="donation-header">
         <Heart className="donation-icon" />
         <h1>Make a Donation</h1>
-        <p>Support our partner charities through secure blockchain transactions</p>
+        <p>Support our partner charities through secure XRPL transactions</p>
       </div>
 
-      <div className="form-container">
-        <form onSubmit={handleSubmit} className="donation-form">
-          <div className="form-group">
-            <label htmlFor="charity">Select Charity</label>
-            <select
-              id="charity"
-              name="charity"
-              value={formData.charity}
-              onChange={handleInputChange}
-              className="input"
+      {!paymentStatus ? (
+        <div className="form-container">
+          <form onSubmit={handleSubmit} className="donation-form">
+            <div className="form-group">
+              <label htmlFor="charity">Select Charity</label>
+              <select
+                id="charity"
+                name="charity"
+                value={formData.charity}
+                onChange={handleInputChange}
+                className="input"
+              >
+                <option value="MEDA">MEDA - Medical Emergency Development Aid</option>
+                <option value="TARA">TARA - Technology Access for Rural Areas</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="cid">Cause ID</label>
+              <input
+                type="text"
+                id="cid"
+                name="cid"
+                value={formData.cid}
+                onChange={handleInputChange}
+                className="input"
+                placeholder="Enter cause identifier"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="amount">Donation Amount (RLUSD)</label>
+              <input
+                type="number"
+                id="amount"
+                name="amount"
+                value={formData.amount}
+                onChange={handleInputChange}
+                className="input"
+                placeholder="Enter amount"
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="donor_email">Email (Optional)</label>
+              <input
+                type="email"
+                id="donor_email"
+                name="donor_email"
+                value={formData.donor_email}
+                onChange={handleInputChange}
+                className="input"
+                placeholder="Enter your email for updates"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="submit-btn"
+              disabled={!isValidForm || loading}
             >
-              <option value="MEDA">MEDA - Medical Emergency Development Aid</option>
-              <option value="TARA">TARA - Technology Access for Rural Areas</option>
-            </select>
+              {loading ? 'Creating Payment...' : 'Create Xumm Payment'}
+            </button>
+
+            {error && (
+              <div className="error-message">
+                <AlertCircle className="error-icon" />
+                {error}
+              </div>
+            )}
+          </form>
+        </div>
+      ) : (
+        <div className="payment-status-container">
+          <div className="payment-header">
+            <QrCode className="qr-icon" />
+            <h2>Payment Ready</h2>
+            <p>Scan the QR code with Xumm/Xaman to complete your donation</p>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="cid">Cause ID</label>
-            <input
-              type="text"
-              id="cid"
-              name="cid"
-              value={formData.cid}
-              onChange={handleInputChange}
-              className="input"
-              placeholder="Enter cause identifier"
-              required
+          <div className="qr-container">
+            <img 
+              src={paymentStatus.qrCodeUrl} 
+              alt="Payment QR Code" 
+              className="qr-code"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="amount">Donation Amount (USD)</label>
-            <input
-              type="number"
-              id="amount"
-              name="amount"
-              value={formData.amount || ''}
-              onChange={handleInputChange}
-              className="input"
-              placeholder="0.00"
-              min="0.01"
-              step="0.01"
-              required
-            />
+          <div className="payment-details">
+            <div className="detail-item">
+              <strong>Charity:</strong> {formData.charity}
+            </div>
+            <div className="detail-item">
+              <strong>Amount:</strong> {formData.amount} RLUSD
+            </div>
+            <div className="detail-item">
+              <strong>Cause ID:</strong> {formData.cid}
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="donor_email">Email (Optional)</label>
-            <input
-              type="email"
-              id="donor_email"
-              name="donor_email"
-              value={formData.donor_email}
-              onChange={handleInputChange}
-              className="input"
-              placeholder="your@email.com"
-            />
+          <div className="payment-instructions">
+            <h3>How to Pay:</h3>
+            <ol>
+              <li>Open Xumm/Xaman on your phone</li>
+              <li>Tap the QR code scanner</li>
+              <li>Scan the QR code above</li>
+              <li>Review and confirm the payment</li>
+            </ol>
           </div>
 
-          {success && (
+          {paymentStatus.status === 'completed' && (
             <div className="success-message">
               <CheckCircle className="success-icon" />
-              <span>{success}</span>
+              <h3>Payment Successful!</h3>
+              <p>Transaction Hash: {paymentStatus.transactionHash}</p>
+              <button 
+                onClick={() => setPaymentStatus(null)}
+                className="new-donation-btn"
+              >
+                Make Another Donation
+              </button>
             </div>
           )}
 
-          {error && (
+          {paymentStatus.status === 'failed' && (
             <div className="error-message">
               <AlertCircle className="error-icon" />
-              <span>{error}</span>
+              <h3>Payment Failed</h3>
+              <p>Please try again or contact support</p>
+              <button 
+                onClick={() => setPaymentStatus(null)}
+                className="retry-btn"
+              >
+                Try Again
+              </button>
             </div>
           )}
 
-          <button
-            type="submit"
-            className="btn submit-btn"
-            disabled={!isValidForm || loading}
+          <button 
+            onClick={() => setPaymentStatus(null)}
+            className="back-btn"
           >
-            {loading ? (
-              <>
-                <div className="loading"></div>
-                Processing...
-              </>
-            ) : (
-              <>
-                <Heart className="btn-icon" />
-                Make Donation
-              </>
-            )}
+            ← Back to Form
           </button>
-        </form>
-
-        <div className="donation-info">
-          <h3>How it works</h3>
-          <div className="info-steps">
-            <div className="step">
-              <div className="step-number">1</div>
-              <div className="step-content">
-                <h4>Select Charity</h4>
-                <p>Choose from our verified partner charities</p>
-              </div>
-            </div>
-            
-            <div className="step">
-              <div className="step-number">2</div>
-              <div className="step-content">
-                <h4>Enter Details</h4>
-                <p>Provide cause ID and donation amount</p>
-              </div>
-            </div>
-            
-            <div className="step">
-              <div className="step-number">3</div>
-              <div className="step-content">
-                <h4>Blockchain Transaction</h4>
-                <p>Your donation is recorded on XRPL blockchain</p>
-              </div>
-            </div>
-            
-            <div className="step">
-              <div className="step-number">4</div>
-              <div className="step-content">
-                <h4>Confirmation</h4>
-                <p>Receive transaction confirmation and tracking</p>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

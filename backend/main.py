@@ -24,6 +24,14 @@ class DonationReq(BaseModel):
     amount: float
     donor_email: str | None = None
 
+class XummPaymentConfirmation(BaseModel):
+    payload_id: str
+    transaction_hash: str
+    charity: str
+    cause_id: str
+    amount: float
+    donor_email: str | None = None
+
 @app.post("/donate")
 async def donate(req: DonationReq):
     tx_hash, memo = send_rlusd_payment(req.charity.upper(), req.cid, req.amount)
@@ -31,6 +39,38 @@ async def donate(req: DonationReq):
     save_record(rec)
     return {"tx": tx_hash,
             "track": f"https://testnet.xrpl.org/transactions/{tx_hash}"}
+
+@app.post("/xumm/confirm-payment")
+async def confirm_xumm_payment(confirmation: XummPaymentConfirmation):
+    """Handle Xumm payment confirmation"""
+    try:
+        # Create donation record from Xumm payment
+        memo = {
+            "cid": confirmation.cause_id,
+            "chr": confirmation.charity.upper(),
+            "amt": confirmation.amount,
+            "cur": "RLUSD",
+            "ts": psycopg2.sql.SQL("NOW()"),
+            "ph": f"xumm_{confirmation.payload_id}"  # Xumm-specific hash
+        }
+        
+        rec = {
+            **memo,
+            "tx": confirmation.transaction_hash,
+            "donor_email": confirmation.donor_email,
+            "payment_method": "xumm",
+            "payload_id": confirmation.payload_id
+        }
+        
+        save_record(rec)
+        
+        return {
+            "status": "success",
+            "transaction_hash": confirmation.transaction_hash,
+            "track": f"https://testnet.xrpl.org/transactions/{confirmation.transaction_hash}"
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.get("/totals")
 async def totals():
@@ -49,4 +89,8 @@ async def scores(charity:str):
 @app.post("/payout/{charity}")
 async def payout(charity: str):
     # Mock off-ramp
-    return {"charity": charity, "status": "queued", "ref": f"OFFMOCK-{charity.upper()}"} 
+    return {"charity": charity, "status": "queued", "ref": f"OFFMOCK-{charity.upper()}"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "service": "eunoia-atlas-api"} 

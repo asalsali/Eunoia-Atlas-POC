@@ -1,183 +1,288 @@
 .donation-form-container {
-  padding: 20px 0;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
 .donation-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 3rem;
+  padding: 2rem 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
 }
 
 .donation-icon {
-  color: #667eea;
-  font-size: 3rem;
-  margin-bottom: 16px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
 }
 
 .donation-header h1 {
   font-size: 2.5rem;
-  color: white;
-  margin-bottom: 8px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+  font-weight: 700;
 }
 
 .donation-header p {
   font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.9);
+  opacity: 0.9;
 }
 
 .form-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  max-width: 1000px;
-  margin: 0 auto;
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .donation-form {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.donation-form .form-group {
-  margin-bottom: 24px;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.donation-form label {
-  display: block;
-  margin-bottom: 8px;
+.form-group label {
   font-weight: 600;
   color: #333;
   font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-.donation-form .input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e1e5e9;
+.input {
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
   border-radius: 8px;
-  font-size: 16px;
-  transition: all 0.3s ease;
-  background: #f8fafc;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
 }
 
-.donation-form .input:focus {
+.input:focus {
   outline: none;
   border-color: #667eea;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .submit-btn {
-  width: 100%;
-  padding: 16px;
-  font-size: 18px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 24px;
+  gap: 0.5rem;
 }
 
-.btn-icon {
-  font-size: 20px;
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
 }
 
-.success-message,
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin: 16px 0;
-  font-weight: 500;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 
-.success-message {
-  background: #d1fae5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
-}
-
-.error-message {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
-.success-icon,
 .error-icon {
-  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 
-.donation-info {
+/* Payment Status Styles */
+.payment-status-container {
   background: white;
-  border-radius: 16px;
-  padding: 32px;
+  padding: 2rem;
+  border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.donation-info h3 {
-  color: #333;
-  margin-bottom: 24px;
-  font-size: 1.5rem;
   text-align: center;
 }
 
-.info-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.payment-header {
+  margin-bottom: 2rem;
 }
 
-.step {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
+.qr-icon {
+  width: 48px;
+  height: 48px;
+  color: #667eea;
+  margin-bottom: 1rem;
 }
 
-.step-number {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
-  flex-shrink: 0;
-}
-
-.step-content h4 {
+.payment-header h2 {
   color: #333;
-  margin-bottom: 4px;
+  margin-bottom: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.payment-header p {
+  color: #666;
   font-size: 1.1rem;
 }
 
-.step-content p {
+.qr-container {
+  margin: 2rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.qr-code {
+  max-width: 300px;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.payment-details {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 2rem 0;
+  text-align: left;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.payment-instructions {
+  text-align: left;
+  margin: 2rem 0;
+}
+
+.payment-instructions h3 {
+  color: #333;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.payment-instructions ol {
   color: #666;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  line-height: 1.8;
+  padding-left: 1.5rem;
+}
+
+.payment-instructions li {
+  margin-bottom: 0.5rem;
+}
+
+.success-message {
+  background: #d4edda;
+  color: #155724;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.success-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.success-message h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.new-donation-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.new-donation-btn:hover {
+  background: #218838;
+}
+
+.retry-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: #c82333;
+}
+
+.back-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  margin-top: 1rem;
+}
+
+.back-btn:hover {
+  background: #5a6268;
 }
 
 @media (max-width: 768px) {
-  .form-container {
-    grid-template-columns: 1fr;
-    gap: 24px;
+  .donation-form-container {
+    padding: 1rem;
   }
   
   .donation-header h1 {
     font-size: 2rem;
   }
   
-  .donation-form,
-  .donation-info {
-    padding: 24px;
+  .qr-code {
+    max-width: 250px;
+  }
+  
+  .payment-details {
+    padding: 1rem;
+  }
+  
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
   }
 } 
