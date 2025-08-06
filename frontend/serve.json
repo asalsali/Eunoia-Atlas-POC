@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    {
+      "source": "/scores/*",
+      "destination": "http://api:8000/scores/*"
+    },
+    {
+      "source": "/donate",
+      "destination": "http://api:8000/donate"
+    },
+    {
+      "source": "/totals",
+      "destination": "http://api:8000/totals"
+    },
+    {
+      "source": "/payout/*",
+      "destination": "http://api:8000/payout/*"
+    }
+  ]
+} 

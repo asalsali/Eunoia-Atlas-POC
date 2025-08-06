@@ -1,0 +1,528 @@
+.super-admin-view {
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.admin-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 2rem 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
+}
+
+.admin-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.admin-header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.admin-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #667eea;
+  background: white;
+  color: #667eea;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  background: #667eea;
+  color: white;
+}
+
+.tab-btn.active {
+  background: #667eea;
+  color: white;
+}
+
+.tab-btn .icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Overview Tab */
+.admin-overview {
+  display: grid;
+  gap: 2rem;
+}
+
+.overview-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.stat-icon .icon {
+  color: white;
+  width: 24px;
+  height: 24px;
+}
+
+.stat-content h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.overview-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.chart-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.chart-card h3 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+}
+
+.health-indicators {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.indicator {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.status.online {
+  background: #28a745;
+}
+
+.status.offline {
+  background: #dc3545;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.activity-time {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.activity-text {
+  color: #333;
+  font-weight: 500;
+}
+
+/* Onboarding Tab */
+.admin-onboarding {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.onboarding-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.onboarding-form h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.add-org-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.add-org-btn:hover {
+  background: #5a6fd8;
+}
+
+.onboarding-info {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.onboarding-info h3 {
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.process-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.step-number {
+  background: #667eea;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.step-content h4 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.step-content p {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* FL Monitor Tab */
+.admin-fl-monitor {
+  display: grid;
+  gap: 2rem;
+}
+
+.admin-fl-monitor h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.fl-clients {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.fl-client-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.client-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.client-header h3 {
+  color: #333;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-badge.online {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.offline {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-badge.training {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.client-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat .label {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.stat .value {
+  color: #333;
+  font-weight: 600;
+}
+
+.client-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  background: #f8f9fa;
+  color: #667eea;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #667eea;
+  color: white;
+}
+
+.action-btn.small {
+  padding: 0.25rem 0.5rem;
+}
+
+.fl-metrics {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.fl-metrics h3 {
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.metric-card {
+  text-align: center;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.metric-card h4 {
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.metric-value {
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.metric-trend {
+  color: #28a745;
+  font-size: 0.8rem;
+}
+
+/* Organizations Tab */
+.admin-organizations {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.admin-organizations h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.orgs-table {
+  overflow-x: auto;
+}
+
+.orgs-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.orgs-table th,
+.orgs-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.orgs-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.org-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .super-admin-view {
+    padding: 1rem;
+  }
+  
+  .admin-header h1 {
+    font-size: 2rem;
+  }
+  
+  .admin-tabs {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .overview-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .overview-charts {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-onboarding {
+    grid-template-columns: 1fr;
+  }
+  
+  .fl-clients {
+    grid-template-columns: 1fr;
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+} 

@@ -1,0 +1,290 @@
+.charity-staff-view {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.charity-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 2rem 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
+}
+
+.charity-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.charity-header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.charity-selector {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.charity-btn {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #667eea;
+  background: white;
+  color: #667eea;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.charity-btn:hover {
+  background: #667eea;
+  color: white;
+}
+
+.charity-btn.active {
+  background: #667eea;
+  color: white;
+}
+
+.charity-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.overview-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.overview-card:hover {
+  transform: translateY(-2px);
+}
+
+.card-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.card-icon .icon {
+  color: white;
+  width: 24px;
+  height: 24px;
+}
+
+.card-content h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-value {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.charity-details {
+  display: grid;
+  gap: 2rem;
+}
+
+.details-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.details-section h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 0.5rem;
+}
+
+.donors-table {
+  overflow-x: auto;
+}
+
+.donors-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.donors-table th,
+.donors-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.donors-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.hash-cell {
+  font-family: monospace;
+  color: #667eea;
+}
+
+.engagement {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.engagement.high {
+  background: #d4edda;
+  color: #155724;
+}
+
+.engagement.medium {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.fl-insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.insight-card {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.insight-card h3 {
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.insight-card p {
+  color: #666;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.insight-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.insight-stats span {
+  background: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.blockchain-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.blockchain-card {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #28a745;
+}
+
+.blockchain-card h3 {
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.blockchain-card p {
+  color: #666;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.verification-links a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.verification-links a:hover {
+  text-decoration: underline;
+}
+
+.privacy-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.privacy-features span {
+  color: #28a745;
+  font-size: 0.9rem;
+}
+
+.charity-loading {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .charity-staff-view {
+    padding: 1rem;
+  }
+  
+  .charity-header h1 {
+    font-size: 2rem;
+  }
+  
+  .charity-selector {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .charity-overview {
+    grid-template-columns: 1fr;
+  }
+  
+  .fl-insights {
+    grid-template-columns: 1fr;
+  }
+  
+  .blockchain-info {
+    grid-template-columns: 1fr;
+  }
+} 

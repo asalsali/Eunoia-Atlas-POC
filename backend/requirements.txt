@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+psycopg2-binary
+xrpl-py>=2.4.1
+flwr
+python-dotenv
+jsonschema
+scikit-learn
+pandas
+numpy 

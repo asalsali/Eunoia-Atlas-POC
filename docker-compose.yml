@@ -1,0 +1,48 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: eunoia
+    ports: ["5432:5432"]
+    volumes:
+      - ./backend/sql/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+
+  api:
+    build: ./backend
+    env_file: .env
+    ports: ["8000:8000"]
+    depends_on: [db]
+
+  listener:
+    build: ./backend
+    command: ["python", "listener.py"]
+    env_file: .env
+    depends_on: [db]
+
+  fl-server:
+    build: ./backend
+    command: ["python", "fl/server.py"]
+    env_file: .env
+    ports: ["8080:8080"]
+
+  meda-client:
+    build: ./backend
+    command: ["python", "fl/meda_client.py"]
+    env_file: .env
+    depends_on: [fl-server, db]
+
+  tara-client:
+    build: ./backend
+    command: ["python", "fl/tara_client.py"]
+    env_file: .env
+    depends_on: [fl-server, db]
+
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on: [api] 
