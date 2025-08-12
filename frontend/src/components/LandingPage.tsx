@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MessageSquare, BarChart3, Settings, Users, Shield, ArrowRight, Globe, Zap, Eye, ChevronDown } from 'lucide-react';
+import { Heart, MessageSquare, BarChart3, Settings, Users, Shield, ArrowRight, Globe, Zap, Eye, Wallet, CheckCircle2, Sparkles, Star, Gift, TrendingUp, ArrowDown, ChevronRight, Lock, Users2, Globe2, Award } from 'lucide-react';
 import { getTotals } from '../services/api';
 import './LandingPage.css';
+import { useWallet } from '../context/WalletContext';
 
 interface DonationStats {
   MEDA?: number;
@@ -17,8 +18,8 @@ interface LandingPageProps {
 const LandingPage: React.FC<LandingPageProps> = ({ userRole, setUserRole }) => {
   const [totals, setTotals] = useState<DonationStats>({});
   const [loading, setLoading] = useState(true);
-  const [showRoleSelector, setShowRoleSelector] = useState(false);
   const navigate = useNavigate();
+  const wallet = useWallet();
 
   useEffect(() => {
     const fetchTotals = async () => {
@@ -39,343 +40,830 @@ const LandingPage: React.FC<LandingPageProps> = ({ userRole, setUserRole }) => {
 
   const handleRoleChange = (newRole: 'donor' | 'charity' | 'admin') => {
     setUserRole(newRole);
-    setShowRoleSelector(false);
-    
-    // Stay on landing page for all roles to show the role change effect
-    // Users can navigate to specific dashboards using the action cards
   };
 
-  const primaryActions = {
-    donor: [
-      {
-        title: "Share Your Story",
-        description: "Express why you're giving with our guided experience",
-        icon: <MessageSquare size={24} />,
-        action: () => navigate('/whisper'),
-        primary: true,
-        color: "purple"
-      },
-      {
-        title: "Make a Donation",
-        description: "Direct donation with XRPL blockchain transparency",
-        icon: <Heart size={24} />,
-        action: () => navigate('/donate'),
-        primary: false,
-        color: "blue"
-      }
-    ],
-    charity: [
-      {
-        title: "View Analytics",
-        description: "Insights and donor engagement metrics",
-        icon: <BarChart3 size={24} />,
-        action: () => navigate('/analytics'),
-        primary: true,
-        color: "green"
-      },
-      {
-        title: "Charity Dashboard",
-        description: "Manage your organization's presence",
-        icon: <Users size={24} />,
-        action: () => navigate('/charity'),
-        primary: false,
-        color: "blue"
-      }
-    ],
-    admin: [
-      {
-        title: "Platform Management",
-        description: "Oversee platform operations and organizations",
-        icon: <Settings size={24} />,
-        action: () => navigate('/admin'),
-        primary: true,
-        color: "red"
-      },
-      {
-        title: "System Dashboard",
-        description: "Monitor platform health and federated learning",
-        icon: <BarChart3 size={24} />,
-        action: () => navigate('/dashboard'),
-        primary: false,
-        color: "purple"
-      }
-    ]
-  };
+  // If not donor role, show role switcher and basic info
+  if (userRole !== 'donor') {
+    return (
+      <div style={{ 
+        minHeight: '100vh',
+        background: '#ffffff',
+        padding: '60px 20px'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+            padding: '60px 40px',
+            borderRadius: '24px',
+            marginBottom: '60px',
+            border: '1px solid #e2e8f0'
+          }}>
+            <h1 style={{
+              fontSize: '3.5rem',
+              fontWeight: 900,
+              color: '#0f172a',
+              marginBottom: '20px'
+            }}>
+              Welcome to Eunoia Atlas
+            </h1>
+            <p style={{
+              fontSize: '1.25rem',
+              color: '#64748b',
+              marginBottom: '50px',
+              maxWidth: '600px',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              lineHeight: '1.6'
+            }}>
+              Privacy-preserving charitable giving platform
+            </p>
+            
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '20px',
+              marginBottom: '50px',
+              flexWrap: 'wrap'
+            }}>
+              <button 
+                onClick={() => handleRoleChange('donor')}
+                style={{
+                  padding: '16px 32px',
+                  borderRadius: '16px',
+                  border: '2px solid #7c3aed',
+                  background: 'transparent',
+                  color: '#7c3aed',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontSize: '1.1rem'
+                }}
+              >
+                👤 Donor
+              </button>
+              <button 
+                onClick={() => handleRoleChange('charity')}
+                style={{
+                  padding: '16px 32px',
+                  borderRadius: '16px',
+                  border: '2px solid #7c3aed',
+                  background: userRole === 'charity' ? '#7c3aed' : 'transparent',
+                  color: userRole === 'charity' ? '#fff' : '#7c3aed',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontSize: '1.1rem'
+                }}
+              >
+                🏢 Charity
+              </button>
+              <button 
+                onClick={() => handleRoleChange('admin')}
+                style={{
+                  padding: '16px 32px',
+                  borderRadius: '16px',
+                  border: '2px solid #7c3aed',
+                  background: userRole === 'admin' ? '#7c3aed' : 'transparent',
+                  color: userRole === 'admin' ? '#fff' : '#7c3aed',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontSize: '1.1rem'
+                }}
+              >
+                ⚙️ Admin
+              </button>
+            </div>
 
-  const features = [
-    {
-      icon: <Shield size={32} />,
-      title: "Privacy First",
-      description: "Your identity is protected through cryptographic hashing while maintaining full transparency"
-    },
-    {
-      icon: <Globe size={32} />,
-      title: "Blockchain Verified",
-      description: "All donations are publicly verifiable on the XRPL blockchain for complete transparency"
-    },
-    {
-      icon: <Zap size={32} />,
-      title: "Instant Impact",
-      description: "Real-time donation processing with immediate confirmation and tracking"
-    },
-    {
-      icon: <Eye size={32} />,
-      title: "Federated Learning",
-      description: "Charities collaborate on insights without sharing sensitive donor data"
-    }
-  ];
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '30px',
+              maxWidth: '900px',
+              margin: '0 auto'
+            }}>
+              {userRole === 'charity' && (
+                <>
+                  <button
+                    onClick={() => navigate('/analytics')}
+                    style={{
+                      background: '#fff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '20px',
+                      padding: '32px 24px',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                      display: 'block',
+                      width: '100%'
+                    }}
+                  >
+                    <BarChart3 size={40} style={{ color: '#7c3aed', marginBottom: '16px' }} />
+                    <h3 style={{ margin: '0 0 12px 0', color: '#0f172a', fontSize: '1.4rem', fontWeight: '700' }}>View Analytics</h3>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: '1rem', lineHeight: '1.5' }}>Insights and donor engagement metrics</p>
+                  </button>
+                  <button
+                    onClick={() => navigate('/charity')}
+                    style={{
+                      background: '#fff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '20px',
+                      padding: '32px 24px',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                      display: 'block',
+                      width: '100%'
+                    }}
+                  >
+                    <Users size={40} style={{ color: '#7c3aed', marginBottom: '16px' }} />
+                    <h3 style={{ margin: '0 0 12px 0', color: '#0f172a', fontSize: '1.4rem', fontWeight: '700' }}>Charity Dashboard</h3>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: '1rem', lineHeight: '1.5' }}>Manage your organization's presence</p>
+                  </button>
+                </>
+              )}
+              
+              {userRole === 'admin' && (
+                <>
+                  <button
+                    onClick={() => navigate('/admin')}
+                    style={{
+                      background: '#fff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '20px',
+                      padding: '32px 24px',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                      display: 'block',
+                      width: '100%'
+                    }}
+                  >
+                    <Settings size={40} style={{ color: '#7c3aed', marginBottom: '16px' }} />
+                    <h3 style={{ margin: '0 0 12px 0', color: '#0f172a', fontSize: '1.4rem', fontWeight: '700' }}>Platform Management</h3>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: '1rem', lineHeight: '1.5' }}>Oversee platform operations</p>
+                  </button>
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    style={{
+                      background: '#fff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '20px',
+                      padding: '32px 24px',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                      display: 'block',
+                      width: '100%'
+                    }}
+                  >
+                    <BarChart3 size={40} style={{ color: '#7c3aed', marginBottom: '16px' }} />
+                    <h3 style={{ margin: '0 0 12px 0', color: '#0f172a', fontSize: '1.4rem', fontWeight: '700' }}>System Dashboard</h3>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: '1rem', lineHeight: '1.5' }}>Monitor platform health</p>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
-      <div className="landing-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading Eunoia Atlas...</p>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        fontSize: '1.25rem',
+        color: '#64748b',
+        background: '#ffffff'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          padding: '40px'
+        }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            border: '3px solid #f3f4f6',
+            borderTop: '3px solid #7c3aed',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 20px auto'
+          }} />
+          Loading Eunoia Atlas...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="landing-page">
-      {/* Floating Role Switcher */}
-      <div className="floating-role-switcher">
-        <div className="role-tabs">
-          <button 
-            className={`role-tab ${userRole === 'donor' ? 'active' : ''}`}
-            onClick={() => handleRoleChange('donor')}
-          >
-            👤 Donor
-          </button>
-          <button 
-            className={`role-tab ${userRole === 'charity' ? 'active' : ''}`}
-            onClick={() => handleRoleChange('charity')}
-          >
-            🏢 Charity
-          </button>
-          <button 
-            className={`role-tab ${userRole === 'admin' ? 'active' : ''}`}
-            onClick={() => handleRoleChange('admin')}
-          >
-            ⚙️ Admin
-          </button>
+    <div style={{ 
+      minHeight: '100vh',
+      background: '#ffffff',
+      padding: '0'
+    }}>
+      {/* Hero Section */}
+      <div style={{
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        padding: '120px 20px 100px 20px',
+        textAlign: 'center',
+        color: '#0f172a',
+        position: 'relative',
+        overflow: 'hidden',
+        borderBottom: '1px solid #e2e8f0'
+      }}>
+        {/* Background Pattern */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'radial-gradient(circle at 20% 80%, rgba(124, 58, 237, 0.03) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(124, 58, 237, 0.03) 0%, transparent 50%)',
+          pointerEvents: 'none'
+        }} />
+        
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          position: 'relative',
+          zIndex: 1
+        }}>
+          <div style={{
+            background: 'rgba(124, 58, 237, 0.05)',
+            color: '#7c3aed',
+            padding: '8px 16px',
+            borderRadius: '20px',
+            display: 'inline-block',
+            marginBottom: '30px',
+            fontSize: '0.9rem',
+            fontWeight: '600',
+            border: '1px solid rgba(124, 58, 237, 0.1)'
+          }}>
+            ✨ Privacy-Preserving Platform
+          </div>
+          
+          <h1 style={{
+            fontSize: '4.5rem',
+            fontWeight: 900,
+            marginBottom: '30px',
+            lineHeight: 1.1,
+            color: '#0f172a'
+          }}>
+            Give with
+            <span style={{
+              background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}> Impact</span>
+          </h1>
+          <p style={{
+            fontSize: '1.5rem',
+            marginBottom: '50px',
+            color: '#64748b',
+            maxWidth: '700px',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            lineHeight: '1.6',
+            fontWeight: '400'
+          }}>
+            Connect your intent with real-world impact through privacy-preserving charitable giving
+          </p>
+          
+          {/* Role Switcher */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '20px',
+            marginBottom: '60px',
+            flexWrap: 'wrap'
+          }}>
+            <button 
+              onClick={() => handleRoleChange('donor')}
+              style={{
+                padding: '18px 36px',
+                borderRadius: '18px',
+                border: '2px solid #7c3aed',
+                background: 'rgba(124, 58, 237, 0.1)',
+                color: '#7c3aed',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontSize: '1.1rem',
+                boxShadow: '0 4px 20px rgba(124, 58, 237, 0.15)'
+              }}
+            >
+              👤 Donor
+            </button>
+            <button 
+              onClick={() => handleRoleChange('charity')}
+              style={{
+                padding: '18px 36px',
+                borderRadius: '18px',
+                border: '2px solid #e2e8f0',
+                background: 'transparent',
+                color: '#64748b',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontSize: '1.1rem'
+              }}
+            >
+              🏢 Charity
+            </button>
+            <button 
+              onClick={() => handleRoleChange('admin')}
+              style={{
+                padding: '18px 36px',
+                borderRadius: '18px',
+                border: '2px solid #e2e8f0',
+                background: 'transparent',
+                color: '#64748b',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontSize: '1.1rem'
+              }}
+            >
+              ⚙️ Admin
+            </button>
+          </div>
+
+          {/* Scroll Indicator */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '10px',
+            color: '#64748b',
+            fontSize: '0.9rem',
+            fontWeight: '500'
+          }}>
+            <span>Explore our platform</span>
+            <ArrowDown size={20} style={{ animation: 'bounce 2s infinite' }} />
+          </div>
         </div>
       </div>
 
-      {/* Hero Section */}
-      <section className="hero">
-        <div className="hero-background">
-          <div className="hero-blob hero-blob-1"></div>
-          <div className="hero-blob hero-blob-2"></div>
-        </div>
-        
-        <div className="hero-content">
-          <div className="hero-badge">
-            Privacy-Preserving Charitable Giving
-          </div>
+      {/* Main Content */}
+      <div style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '0 20px'
+      }}>
+        {/* Primary CTA Section */}
+        <div style={{ 
+          padding: '100px 0',
+          textAlign: 'center'
+        }}>
+          <h2 style={{
+            fontSize: '3.5rem',
+            fontWeight: '800',
+            color: '#0f172a',
+            marginBottom: '30px'
+          }}>
+            Whisper Your Message
+          </h2>
+          <p style={{
+            fontSize: '1.3rem',
+            color: '#64748b',
+            marginBottom: '60px',
+            maxWidth: '700px',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            lineHeight: '1.6'
+          }}>
+            Share your story, make a donation, and create lasting impact. Your words matter.
+          </p>
           
-          <h1 className="hero-title">
-            Give from the heart,<br />
-            <span className="hero-gradient">powered by purpose</span>
-          </h1>
-          
-          <p className="hero-description">
-            Eunoia Atlas combines blockchain transparency with privacy protection, 
-            enabling meaningful charitable giving while preserving donor anonymity through federated learning.
-          </p>
+          <button
+            onClick={() => navigate('/whisper')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '15px',
+              background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+              color: '#ffffff',
+              padding: '24px 48px',
+              borderRadius: '20px',
+              fontWeight: '700',
+              textDecoration: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 12px 32px rgba(124, 58, 237, 0.3)',
+              fontSize: '1.3rem',
+              transform: 'scale(1)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.boxShadow = '0 16px 40px rgba(124, 58, 237, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 12px 32px rgba(124, 58, 237, 0.3)';
+            }}
+          >
+            <MessageSquare size={28} />
+            Start Whispering Now
+          </button>
+        </div>
 
-          {/* Role Selector */}
-          <div className="role-selector-section">
-            <p className="role-prompt">I want to...</p>
-            <div className="role-selector-wrapper">
-              <button 
-                className={`role-selector-btn ${showRoleSelector ? 'active' : ''}`}
-                onClick={() => setShowRoleSelector(!showRoleSelector)}
-              >
-                <span className="role-icon">
-                  {userRole === 'donor' ? '👤' : userRole === 'charity' ? '🏢' : '⚙️'}
-                </span>
-                <span className="role-text">
-                  {userRole === 'donor' ? 'Give & Support' : 
-                   userRole === 'charity' ? 'Manage Charity' : 'Administer Platform'}
-                </span>
-                <ChevronDown size={16} className={`chevron ${showRoleSelector ? 'rotated' : ''}`} />
-              </button>
-              
-              {showRoleSelector && (
-                <div className="role-dropdown">
-                  <button 
-                    className={`role-option ${userRole === 'donor' ? 'selected' : ''}`}
-                    onClick={() => handleRoleChange('donor')}
-                  >
-                    <span className="role-option-icon">👤</span>
-                    <div className="role-option-content">
-                      <span className="role-option-title">Give & Support</span>
-                      <span className="role-option-desc">Make donations and share your story</span>
-                    </div>
-                  </button>
-                  <button 
-                    className={`role-option ${userRole === 'charity' ? 'selected' : ''}`}
-                    onClick={() => handleRoleChange('charity')}
-                  >
-                    <span className="role-option-icon">🏢</span>
-                    <div className="role-option-content">
-                      <span className="role-option-title">Manage Charity</span>
-                      <span className="role-option-desc">Access analytics and donor insights</span>
-                    </div>
-                  </button>
-                  <button 
-                    className={`role-option ${userRole === 'admin' ? 'selected' : ''}`}
-                    onClick={() => handleRoleChange('admin')}
-                  >
-                    <span className="role-option-icon">⚙️</span>
-                    <div className="role-option-content">
-                      <span className="role-option-title">Administer Platform</span>
-                      <span className="role-option-desc">Manage organizations and monitor systems</span>
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Primary Actions */}
-          <div className="primary-actions">
-            {primaryActions[userRole].map((action, index) => (
-              <button
-                key={index}
-                className={`action-card ${action.primary ? 'primary' : 'secondary'} ${action.color}`}
-                onClick={action.action}
-              >
-                <div className="action-icon">
-                  {action.icon}
-                </div>
-                <div className="action-content">
-                  <h3 className="action-title">{action.title}</h3>
-                  <p className="action-description">{action.description}</p>
-                </div>
-                <ArrowRight size={20} className="action-arrow" />
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="stats-section">
-        <div className="container">
-          <div className="stats-grid">
-          <div className="stat-item">
-            <div className="stat-value">${total.toLocaleString()}</div>
-            <div className="stat-label">Total Donations</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">2</div>
-            <div className="stat-label">Partner Charities</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">100%</div>
-            <div className="stat-label">Privacy Protected</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">Real-time</div>
-            <div className="stat-label">Blockchain Verified</div>
-          </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="features-section">
-        <div className="container">
-          <div className="section-header">
-          <h2 className="section-title">Why Eunoia Atlas?</h2>
-          <p className="section-description">
-            Experience charitable giving reimagined with privacy, transparency, and collaborative intelligence.
-          </p>
-        </div>
-        
-        <div className="features-grid">
-          {features.map((feature, index) => (
-            <div key={index} className="feature-card">
-              <div className="feature-icon">
-                {feature.icon}
-              </div>
-              <h3 className="feature-title">{feature.title}</h3>
-              <p className="feature-description">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-        </div>
-      </section>
-
-      {/* Charities Section */}
-      <section className="charities-section">
-        <div className="container">
-          <div className="section-header">
-          <h2 className="section-title">Partner Charities</h2>
-          <p className="section-description">
-            Supporting organizations making real impact around the world.
-          </p>
-        </div>
-        
-        <div className="charities-grid">
-          <div className="charity-card">
-            <div className="charity-logo">MEDA</div>
-            <h3 className="charity-name">Mennonite Economic Development Associates</h3>
-            <p className="charity-description">
-              Creating business solutions to poverty by partnering with entrepreneurs and communities.
+        {/* Features Section */}
+        <div style={{ 
+          padding: '100px 0',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          borderRadius: '24px',
+          marginBottom: '100px'
+        }}>
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '80px'
+          }}>
+            <h2 style={{
+              fontSize: '3rem',
+              fontWeight: '800',
+              color: '#0f172a',
+              marginBottom: '25px'
+            }}>
+              Why Choose Eunoia Atlas?
+            </h2>
+            <p style={{
+              fontSize: '1.2rem',
+              color: '#64748b',
+              maxWidth: '600px',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              lineHeight: '1.6'
+            }}>
+              Experience the future of charitable giving with privacy, transparency, and impact
             </p>
-            <div className="charity-stats">
-              <div className="charity-stat">
-                <span className="charity-stat-value">${(totals.MEDA || 0).toLocaleString()}</span>
-                <span className="charity-stat-label">Raised</span>
-              </div>
-            </div>
           </div>
           
-          <div className="charity-card">
-            <div className="charity-logo">TARA</div>
-            <h3 className="charity-name">Technology for Rural Advancement</h3>
-            <p className="charity-description">
-              Bridging the digital divide by bringing technology solutions to rural communities.
-            </p>
-            <div className="charity-stats">
-              <div className="charity-stat">
-                <span className="charity-stat-value">${(totals.TARA || 0).toLocaleString()}</span>
-                <span className="charity-stat-label">Raised</span>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+            gap: '40px',
+            maxWidth: '1100px',
+            margin: '0 auto',
+            padding: '0 40px'
+          }}>
+            <div style={{
+              background: '#ffffff',
+              padding: '50px 40px',
+              borderRadius: '20px',
+              textAlign: 'center',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+              border: '1px solid #e2e8f0',
+              transition: 'transform 0.3s ease'
+            }}>
+              <Lock size={60} style={{ color: '#7c3aed', marginBottom: '25px' }} />
+              <h3 style={{ margin: '0 0 20px 0', color: '#0f172a', fontSize: '1.8rem', fontWeight: '700' }}>Privacy First</h3>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '1.1rem', lineHeight: '1.6' }}>
+                Your personal information stays private while your impact remains visible. Advanced encryption ensures your data is secure.
+              </p>
+            </div>
+            
+            <div style={{
+              background: '#ffffff',
+              padding: '50px 40px',
+              borderRadius: '20px',
+              textAlign: 'center',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+              border: '1px solid #e2e8f0',
+              transition: 'transform 0.3s ease'
+            }}>
+              <Globe2 size={60} style={{ color: '#10b981', marginBottom: '25px' }} />
+              <h3 style={{ margin: '0 0 20px 0', color: '#0f172a', fontSize: '1.8rem', fontWeight: '700' }}>Global Impact</h3>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '1.1rem', lineHeight: '1.6' }}>
+                Support causes worldwide with blockchain-powered donations. Real-time tracking shows exactly how your contribution makes a difference.
+              </p>
+            </div>
+            
+            <div style={{
+              background: '#ffffff',
+              padding: '50px 40px',
+              borderRadius: '20px',
+              textAlign: 'center',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+              border: '1px solid #e2e8f0',
+              transition: 'transform 0.3s ease'
+            }}>
+              <Award size={60} style={{ color: '#f59e0b', marginBottom: '25px' }} />
+              <h3 style={{ margin: '0 0 20px 0', color: '#0f172a', fontSize: '1.8rem', fontWeight: '700' }}>Verified Impact</h3>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '1.1rem', lineHeight: '1.6' }}>
+                Every donation is verified on the blockchain. See real-time updates and receive detailed impact reports for your contributions.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Impact Stats Section */}
+        <div style={{ 
+          padding: '100px 0',
+          textAlign: 'center'
+        }}>
+          <h2 style={{
+            fontSize: '3rem',
+            fontWeight: '800',
+            color: '#0f172a',
+            marginBottom: '25px'
+          }}>
+            Our Impact in Numbers
+          </h2>
+          <p style={{
+            fontSize: '1.2rem',
+            color: '#64748b',
+            marginBottom: '60px',
+            maxWidth: '600px',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            lineHeight: '1.6'
+          }}>
+            Real numbers that show the difference we're making together
+          </p>
+          
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '40px',
+            maxWidth: '1000px',
+            margin: '0 auto'
+          }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+              padding: '50px 30px',
+              borderRadius: '20px',
+              textAlign: 'center',
+              color: '#ffffff',
+              boxShadow: '0 12px 32px rgba(124, 58, 237, 0.3)'
+            }}>
+              <div style={{
+                fontSize: '3.5rem',
+                fontWeight: '900',
+                marginBottom: '15px'
+              }}>
+                ${total.toLocaleString()}
+              </div>
+              <div style={{
+                fontWeight: '600',
+                fontSize: '1.2rem',
+                opacity: '0.9'
+              }}>
+                Total Donations
+              </div>
+            </div>
+            <div style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              padding: '50px 30px',
+              borderRadius: '20px',
+              textAlign: 'center',
+              color: '#ffffff',
+              boxShadow: '0 12px 32px rgba(16, 185, 129, 0.3)'
+            }}>
+              <div style={{
+                fontSize: '3.5rem',
+                fontWeight: '900',
+                marginBottom: '15px'
+              }}>
+                2
+              </div>
+              <div style={{
+                fontWeight: '600',
+                fontSize: '1.2rem',
+                opacity: '0.9'
+              }}>
+                Partner Charities
+              </div>
+            </div>
+            <div style={{
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              padding: '50px 30px',
+              borderRadius: '20px',
+              textAlign: 'center',
+              color: '#ffffff',
+              boxShadow: '0 12px 32px rgba(245, 158, 11, 0.3)'
+            }}>
+              <div style={{
+                fontSize: '3.5rem',
+                fontWeight: '900',
+                marginBottom: '15px'
+              }}>
+                100%
+              </div>
+              <div style={{
+                fontWeight: '600',
+                fontSize: '1.2rem',
+                opacity: '0.9'
+              }}>
+                Privacy Protected
               </div>
             </div>
           </div>
         </div>
-        </div>
-      </section>
 
-      {/* CTA Section */}
-      <section className="cta-section">
-        <div className="container">
-          <div className="cta-content">
-          <h2 className="cta-title">Ready to make a difference?</h2>
-          <p className="cta-description">
-            Join our community of privacy-conscious donors making transparent, verifiable impact.
-          </p>
-          <div className="cta-actions">
-            <button 
-              className="cta-btn primary"
-              onClick={() => navigate('/whisper')}
-            >
-              <MessageSquare size={20} />
-              Start with Your Story
-            </button>
-            <button 
-              className="cta-btn secondary"
-              onClick={() => navigate('/donate')}
-            >
-              <Heart size={20} />
-              Make a Donation
-            </button>
+        {/* Partner Charities Section */}
+        <div style={{ 
+          padding: '100px 0',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          borderRadius: '24px',
+          marginBottom: '100px'
+        }}>
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '60px'
+          }}>
+            <h2 style={{
+              fontSize: '3rem',
+              fontWeight: '800',
+              color: '#0f172a',
+              marginBottom: '25px'
+            }}>
+              Our Partner Charities
+            </h2>
+            <p style={{
+              fontSize: '1.2rem',
+              color: '#64748b',
+              maxWidth: '600px',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              lineHeight: '1.6'
+            }}>
+              Supporting organizations that create lasting change in communities worldwide
+            </p>
+          </div>
+          
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+            gap: '40px',
+            maxWidth: '900px',
+            margin: '0 auto',
+            padding: '0 40px'
+          }}>
+            <div style={{
+              background: '#ffffff',
+              padding: '50px 40px',
+              borderRadius: '24px',
+              border: '1px solid #e2e8f0',
+              textAlign: 'center',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+              transition: 'transform 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                right: '0',
+                height: '4px',
+                background: 'linear-gradient(135deg, #7c3aed, #a855f7)'
+              }} />
+              <h3 style={{
+                color: '#0f172a',
+                fontSize: '2.5rem',
+                marginBottom: '20px',
+                fontWeight: '800'
+              }}>
+                MEDA
+              </h3>
+              <p style={{
+                color: '#64748b',
+                marginBottom: '30px',
+                lineHeight: '1.6',
+                fontSize: '1.2rem'
+              }}>
+                Mennonite Economic Development Associates
+              </p>
+              <div style={{
+                background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+                padding: '25px',
+                borderRadius: '18px',
+                fontWeight: '700',
+                color: '#fff',
+                fontSize: '1.4rem',
+                boxShadow: '0 8px 24px rgba(124, 58, 237, 0.3)'
+              }}>
+                Total: ${(totals.MEDA || 0).toLocaleString()}
+              </div>
+            </div>
+            <div style={{
+              background: '#ffffff',
+              padding: '50px 40px',
+              borderRadius: '24px',
+              border: '1px solid #e2e8f0',
+              textAlign: 'center',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+              transition: 'transform 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                right: '0',
+                height: '4px',
+                background: 'linear-gradient(135deg, #10b981, #059669)'
+              }} />
+              <h3 style={{
+                color: '#0f172a',
+                fontSize: '2.5rem',
+                marginBottom: '20px',
+                fontWeight: '800'
+              }}>
+                TARA
+              </h3>
+              <p style={{
+                color: '#64748b',
+                marginBottom: '30px',
+                lineHeight: '1.6',
+                fontSize: '1.2rem'
+              }}>
+                Technology for Rural Advancement
+              </p>
+              <div style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                padding: '25px',
+                borderRadius: '18px',
+                fontWeight: '700',
+                color: '#fff',
+                fontSize: '1.4rem',
+                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)'
+              }}>
+                Total: ${(totals.TARA || 0).toLocaleString()}
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Final CTA Section */}
+        <div style={{ 
+          padding: '100px 0',
+          textAlign: 'center',
+          background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+          borderRadius: '24px',
+          color: '#ffffff',
+          marginBottom: '60px'
+        }}>
+          <h2 style={{
+            fontSize: '3rem',
+            fontWeight: '800',
+            marginBottom: '25px'
+          }}>
+            Ready to Make Your Mark?
+          </h2>
+          <p style={{
+            fontSize: '1.3rem',
+            marginBottom: '50px',
+            opacity: '0.9',
+            maxWidth: '700px',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            lineHeight: '1.6'
+          }}>
+            Join thousands of donors who are already creating positive change. Your whisper can change the world.
+          </p>
+          <button
+            onClick={() => navigate('/whisper')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '15px',
+              background: '#ffffff',
+              color: '#7c3aed',
+              padding: '20px 40px',
+              borderRadius: '18px',
+              fontWeight: '700',
+              textDecoration: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+              fontSize: '1.2rem'
+            }}
+          >
+            <MessageSquare size={24} />
+            Start Whispering Now
+          </button>
         </div>
-      </section>
+      </div>
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createUserDonationPayload, checkUserPaymentStatus, userWalletStatus } from '../services/userWalletService';
+import { xamanCreatePayment } from '../services/api';
 import { Heart, CheckCircle, AlertCircle, QrCode, Wallet } from 'lucide-react';
 import './DonationForm.css';
 
@@ -110,6 +111,45 @@ const DonationForm: React.FC = () => {
     }
   };
 
+  const handleXrpXamanPayment = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    setPaymentStatus(null);
+    setShowQRCode(false);
+
+    try {
+      const charityAddress = formData.charity === 'MEDA'
+        ? 'r4jSjD22z6HtEu41eh1JrkD3KAW1PyM1RH'
+        : 'rJXhFfZVLKBUfNQMZqssdqG3xj5JZFdqYm';
+
+      const resp = await xamanCreatePayment({
+        destination: charityAddress,
+        amount: formData.amount,
+        charity: formData.charity,
+        cause_id: formData.cid || 'donation_xrp',
+        asset: 'XRP'
+      });
+
+      if (!resp?.success || !resp?.payloadId) {
+        setError(resp?.error || 'Failed to create XRP payment');
+        return;
+      }
+
+      setPaymentStatus({
+        payloadId: resp.payloadId,
+        qrCode: resp.qrCode || `https://xumm.app/sign/${resp.payloadId}`,
+        status: 'pending',
+        message: 'Scan to sign 1 XRP payment'
+      });
+      setShowQRCode(true);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to start XRP payment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const isValidForm = formData.cid.trim() && formData.amount > 0;
 
   return (
@@ -203,7 +243,7 @@ const DonationForm: React.FC = () => {
           {paymentStatus && showQRCode && (
             <div className="payment-qr-section">
               <h3>Complete Your Donation</h3>
-              <p>Scan this QR code with your XUMM wallet to complete the payment:</p>
+              <p>Scan this QR code with your Xaman wallet to complete the payment:</p>
               <div className="qr-container">
                 <img src={paymentStatus.qrCode} alt="Payment QR Code" className="qr-code" />
               </div>
@@ -221,7 +261,7 @@ const DonationForm: React.FC = () => {
                   rel="noopener noreferrer"
                   className="btn open-xumm-btn"
                 >
-                  Open in XUMM
+                  Open in Xaman
                 </a>
               </div>
             </div>
@@ -243,6 +283,16 @@ const DonationForm: React.FC = () => {
                 Create Donation Payment
               </>
             )}
+          </button>
+
+          <button
+            type="button"
+            className="btn open-xumm-btn"
+            disabled={!isValidForm || loading}
+            onClick={handleXrpXamanPayment}
+            style={{ marginTop: 12 }}
+          >
+            Donate with XRP (Xaman QR)
           </button>
         </form>
 
@@ -269,7 +319,7 @@ const DonationForm: React.FC = () => {
               <div className="step-number">3</div>
               <div className="step-content">
                 <h4>Connect Wallet</h4>
-                <p>Scan QR code with your XUMM wallet</p>
+                <p>Scan QR code with your Xaman wallet</p>
               </div>
             </div>
             

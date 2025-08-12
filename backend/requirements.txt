@@ -8,3 +8,4 @@ jsonschema
 scikit-learn
 pandas
 numpy 
+requests

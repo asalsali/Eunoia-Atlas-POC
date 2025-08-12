@@ -5,18 +5,19 @@
 }
 
 .donor-hero {
-  text-align: center;
   margin-bottom: 32px;
-  padding: 40px 16px;
+  padding: 28px 20px;
   background: linear-gradient(135deg, #ede9fe, #faf5ff);
   color: #1e293b;
   border-radius: 15px;
 }
 
-.donor-hero h1 { font-size: 2.25rem; margin-bottom: 8px; font-weight: 800; }
-.donor-hero p { font-size: 1.1rem; color: #64748b; }
+.donor-header-line { display: flex; align-items: center; gap: 16px; }
+.donor-avatar { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: #7c3aed; color: #fff; }
+.donor-hero h1 { font-size: 1.75rem; margin: 0 0 4px 0; font-weight: 800; }
+.donor-hero p { font-size: 0.95rem; color: #475569; margin: 0; }
 
-.hero-ctas { margin-top: 16px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.hero-ctas { margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap; }
 .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: #7c3aed; color: #fff; padding: 10px 14px; border-radius: 10px; font-weight: 700; text-decoration: none; }
 .btn-secondary { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #7c3aed; padding: 10px 14px; border-radius: 10px; font-weight: 700; text-decoration: none; border: 1px solid #f3e8ff; }
 
@@ -48,8 +49,16 @@
 .donor-cta h2 { color: #1e293b; margin-bottom: 8px; }
 .donor-cta p { color: #64748b; margin-bottom: 12px; }
 
+.donor-quick-actions { margin-bottom: 32px; }
+.donor-quick-actions h2 { text-align: left; margin-bottom: 12px; color: #1e293b; font-size: 1.5rem; }
+.donor-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.donor-action-card { background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06); border: 1px solid #f3e8ff; display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; position: relative; }
+.donor-action-card.as-button { border: 1px solid #f3e8ff; width: 100%; text-align: left; }
+.donor-action-card .action-icon { color: #7c3aed; width: 22px; height: 22px; }
+.donor-action-card .action-arrow { color: #7c3aed; position: absolute; right: 16px; top: 16px; width: 18px; height: 18px; }
+
 @media (max-width: 768px) {
   .donor-view { padding: 16px; }
-  .donor-hero h1 { font-size: 2rem; }
+  .donor-hero h1 { font-size: 1.5rem; }
   .charity-grid, .features-grid, .donor-stats { grid-template-columns: 1fr; }
 } 

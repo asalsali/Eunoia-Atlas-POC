@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, BarChart3, Home, Brain, Users, Settings, Building, MessageSquare } from 'lucide-react';
+import { Heart, BarChart3, Brain, Settings, Building, MessageSquare } from 'lucide-react';
 import './Header.css';
 
 interface HeaderProps {
@@ -15,18 +15,6 @@ const Header: React.FC<HeaderProps> = ({ userRole = 'donor', setUserRole }) => {
 
   const renderDonorNav = () => (
     <>
-      <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>
-        <Home size={20} />
-        Home
-      </Link>
-      <Link to="/donor-dashboard" className={`nav-link ${isActive('/donor-dashboard') ? 'active' : ''}`}>
-        <BarChart3 size={20} />
-        Dashboard
-      </Link>
-      <Link to="/donate" className={`nav-link ${isActive('/donate') ? 'active' : ''}`}>
-        <Heart size={20} />
-        Donate
-      </Link>
       <Link to="/whisper" className={`nav-link ${isActive('/whisper') ? 'active' : ''}`}>
         <MessageSquare size={20} />
         Share Story
@@ -56,10 +44,6 @@ const Header: React.FC<HeaderProps> = ({ userRole = 'donor', setUserRole }) => {
       <Link to="/admin" className={`nav-link ${isActive('/admin') ? 'active' : ''}`}>
         <Settings size={20} />
         Admin
-      </Link>
-      <Link to="/dashboard" className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}>
-        <BarChart3 size={20} />
-        Dashboard
       </Link>
     </>
   );

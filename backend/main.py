@@ -1,8 +1,9 @@
 import os, json, psycopg2, psycopg2.extras
 from fastapi import FastAPI
+import requests
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from xrpl_utils import send_rlusd_payment, save_record
+from xrpl_utils import send_rlusd_payment, save_record, send_rlusd_payment_from_seed
 
 app = FastAPI()
 
@@ -38,6 +39,20 @@ class XummPaymentConfirmation(BaseModel):
     cause_id: str
     amount: float
     donor_email: str | None = None
+
+class ServerSignedUserPayment(BaseModel):
+    sender_seed: str
+    charity: str
+    amount: float = 1.0
+    cause_id: str = "demo_user_to_charity"
+
+class XamanPaymentRequest(BaseModel):
+    destination: str
+    amount: float
+    charity: str
+    cause_id: str
+    asset: str | None = None  # 'XRP' for native, else RLUSD by default
+    issuer: str | None = None # optional custom issuer for IOU
 
 @app.post("/donate")
 async def donate(req: DonationReq):
@@ -126,6 +141,71 @@ async def confirm_xumm_payment(confirmation: XummPaymentConfirmation):
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+@app.post("/demo/user-to-charity")
+async def demo_user_to_charity(req: ServerSignedUserPayment):
+    """Server-signed demo: send RLUSD from provided user seed to charity"""
+    tx_hash, memo = send_rlusd_payment_from_seed(req.sender_seed, req.charity.upper(), req.cause_id, req.amount)
+    rec = {**memo, "tx": tx_hash, "ph": memo.get("ph")}
+    save_record(rec)
+    return {"tx": tx_hash, "track": f"https://testnet.xrpl.org/transactions/{tx_hash}"}
+
+@app.post("/xaman/create-payment")
+async def xaman_create_payment(req: XamanPaymentRequest):
+    """
+    Create a Xaman payload (server-side) for a Payment transaction and return QR and payload id.
+    """
+    api_key = os.getenv("XAMAN_API_KEY") or os.getenv("XUMM_API_KEY")
+    api_secret = os.getenv("XAMAN_API_SECRET") or os.getenv("XUMM_API_SECRET")
+    if not api_key or not api_secret:
+        return {"success": False, "error": "Xaman API credentials missing"}
+
+    # Build memo
+    memo_hex = json.dumps({
+        "transactionId": f"srv_{req.cause_id}",
+        "charity": req.charity,
+        "causeId": req.cause_id
+    }).encode().hex()
+
+    txjson = {
+        "TransactionType": "Payment",
+        "Destination": req.destination,
+        "Memos": [{"Memo": {"MemoData": memo_hex}}],
+    }
+
+    # Choose asset: native XRP vs RLUSD IOU
+    if (req.asset or "").upper() == "XRP":
+        # amount is in XRP, convert to drops (1 XRP = 1,000,000 drops)
+        drops = str(int(round(req.amount * 1_000_000)))
+        txjson["Amount"] = drops
+    else:
+        txjson["Amount"] = {
+            "value": str(req.amount),
+            "currency": "524C555344000000000000000000000000000000",
+            "issuer": req.issuer or "rQhWct2fv4Vc4KRjRgMrxa8xPN9Zx9iLKV",
+        }
+
+    try:
+        resp = requests.post(
+            "https://xumm.app/api/v1/platform/payload",
+            headers={
+                "X-API-Key": api_key,
+                "X-API-Secret": api_secret,
+                "Content-Type": "application/json",
+            },
+            json={"txjson": txjson}
+        )
+        data = resp.json()
+        if resp.status_code >= 400:
+            return {"success": False, "error": data.get("error", str(data))}
+        return {
+            "success": True,
+            "payloadId": data.get("uuid"),
+            "qrCode": data.get("refs", {}).get("qr_png"),
+            "refs": data.get("refs", {})
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 @app.get("/totals")
 async def totals():

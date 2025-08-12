@@ -41,8 +41,11 @@ services:
     depends_on: [fl-server, db]
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        REACT_APP_API_URL: http://localhost:8000
+        REACT_APP_XAMAN_API_KEY: ba1b287b-3c39-4db2-a5d3-78e5d9ce61d5
+        REACT_APP_XAMAN_API_SECRET: a23f1e70-bb23-4e3f-98e5-b2ef3ad02d1c
     ports: ["3000:3000"]
-    environment:
-      - REACT_APP_API_URL=http://localhost:8000
-    depends_on: [api] 
+    depends_on: [api]

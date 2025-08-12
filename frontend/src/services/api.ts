@@ -28,11 +28,18 @@ export interface TotalsResponse {
 
 export const getTotals = async (): Promise<TotalsResponse> => {
   try {
-    const response = await api.get('/totals');
+    // Add cache-busting parameter to ensure fresh data
+    const response = await api.get('/totals', {
+      params: {
+        _t: Date.now()
+      }
+    });
+    console.log('Fetched totals:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching totals:', error);
-    throw error;
+    // Return default values if API fails
+    return { MEDA: 0, TARA: 0 };
   }
 };
 
@@ -83,3 +90,53 @@ export const submitDonorIntent = async (
     throw error;
   }
 }; 
+
+// Server-signed demo: send 1 RLUSD from a provided user seed to a charity
+export interface DemoUserToCharityRequest {
+  sender_seed: string;
+  charity: string; // e.g., 'MEDA'
+  amount?: number; // defaults to 1
+  cause_id?: string;
+}
+
+export interface DemoUserToCharityResponse {
+  tx: string;
+  track: string;
+}
+
+export const demoUserToCharity = async (
+  payload: DemoUserToCharityRequest
+): Promise<DemoUserToCharityResponse> => {
+  try {
+    const response = await api.post('/demo/user-to-charity', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error calling demo user-to-charity:', error);
+    throw error;
+  }
+};
+
+// Xaman server-side payload creation
+export interface XamanCreatePaymentRequest {
+  destination: string;
+  amount: number;
+  charity: string;
+  cause_id: string;
+  asset?: string; // 'XRP' for native XRP
+  issuer?: string; // optional issuer for IOU
+}
+
+export interface XamanCreatePaymentResponse {
+  success: boolean;
+  payloadId?: string;
+  qrCode?: string;
+  refs?: any;
+  error?: string;
+}
+
+export const xamanCreatePayment = async (
+  payload: XamanCreatePaymentRequest
+): Promise<XamanCreatePaymentResponse> => {
+  const resp = await api.post('/xaman/create-payment', payload);
+  return resp.data;
+};

@@ -1,0 +1,12 @@
+@echo off
+set XAMAN_API_KEY=ba1b287b-3c39-4db2-a5d3-78e5d9ce61d5
+set XAMAN_API_SECRET=b81d711d-0637-4dc9-b809-c45fb23c0b3e
+set MEDA_WALLET_ADDRESS=r4jSjD22z6HtEu41eh1JrkD3KAW1PyM1RH
+set TARA_WALLET_ADDRESS=rJXhFfZVLKBUfNQMZqssdqG3xj5JZFdqYm
+set MEDA_WALLET_SEED=sEd7usfZVHAe39WxB4jFeMMf7wPd3Lt
+set TARA_WALLET_SEED=sEdTvCP3VxoEamkwRsJ3XgrsTmfbQEm
+set PLATFORM_WALLET_SEED=sEd7usfZVHAe39WxB4jFeMMf7wPd3Lt
+set POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/eunoia
+
+cd backend
+python main.py

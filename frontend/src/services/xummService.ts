@@ -8,30 +8,39 @@ let isXummAvailable = false;
 
 try {
   // Only initialize if environment variables are properly set
-  const apiKey = process.env.REACT_APP_XUMM_API_KEY;
-  const apiSecret = process.env.REACT_APP_XUMM_API_SECRET;
+  let apiKey = process.env.REACT_APP_XAMAN_API_KEY || process.env.REACT_APP_XUMM_API_KEY;
+  let apiSecret = process.env.REACT_APP_XAMAN_API_SECRET || process.env.REACT_APP_XUMM_API_SECRET;
+  if (!apiKey || !apiSecret) {
+    // Fallback for demo if build-time env didn’t inject
+    apiKey = 'ba1b287b-3c39-4db2-a5d3-78e5d9ce61d5';
+    apiSecret = 'a23f1e70-bb23-4e3f-98e5-b2ef3ad02d1c';
+  }
   
   if (apiKey && apiSecret && apiKey !== 'your-api-key' && apiSecret !== 'your-api-secret') {
     xumm = new XummSdk(apiKey, apiSecret);
     isXummAvailable = true;
-    console.log('XUMM SDK initialized successfully');
+    console.log('Xaman (XUMM) SDK initialized successfully');
   } else {
-    console.warn('XUMM credentials not properly configured, using fallback mode');
+    console.warn('Xaman credentials not properly configured, using fallback mode');
   }
 } catch (error) {
-  console.error('Failed to initialize XUMM SDK:', error);
+  console.error('Failed to initialize Xaman SDK:', error);
   isXummAvailable = false;
 }
 
-// Convert string to hex for memo data
+// Convert string to hex for memo data (browser-safe)
 function convertStringToHex(str: string): string {
-  return Buffer.from(str).toString('hex');
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(str);
+  let hex = '';
+  for (const b of bytes) hex += b.toString(16).padStart(2, '0');
+  return hex;
 }
 
 // Create RLUSD trust line using XRPL.js with error handling
 export async function createRlusdTrustLine(wallet: any) {
   if (!isXummAvailable) {
-    console.warn('XUMM not available, skipping trust line creation');
+    console.warn('Xaman not available, skipping trust line creation');
     return false;
   }
 
@@ -75,7 +84,7 @@ export async function getQRCodeURL(
   validity: number = 129600
 ): Promise<string> {
   if (!isXummAvailable || !xumm) {
-    console.warn('XUMM not available, returning fallback QR code');
+    console.warn('Xaman not available, returning fallback QR code');
     return `https://xumm.app/sign/${transactionId}`;
   }
 
@@ -101,8 +110,9 @@ export async function getQRCodeURL(
   try {
     const payload = await xumm.payload.create(request);
     return payload?.refs?.qr_png || '';
-  } catch (error) {
-    console.error('Error creating Xumm payload:', error);
+  } catch (error: any) {
+    console.error('Error creating Xaman payload:', error);
+    const message = error?.response?.data?.error || error?.message || 'Failed to create payment';
     // Return fallback URL
     return `https://xumm.app/sign/${transactionId}`;
   }
@@ -117,12 +127,12 @@ export async function createDonationPayment(
   causeId: string
 ): Promise<any> {
   if (!isXummAvailable || !xumm) {
-    console.warn('XUMM not available, returning mock payment data');
+    console.warn('Xaman not available, returning mock payment data');
     return {
       success: true,
       payloadId: `mock-${transactionId}`,
       qrCode: `https://xumm.app/sign/${transactionId}`,
-      message: 'XUMM integration disabled - using fallback mode'
+      message: 'Xaman integration disabled - using fallback mode'
     };
   }
 
@@ -163,11 +173,12 @@ export async function createDonationPayment(
     } else {
       throw new Error('Failed to create payload');
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating donation payment:', error);
+    const message = error?.response?.data?.error || error?.message || 'Failed to create payment';
     return {
       success: false,
-      error: 'Failed to create payment',
+      error: message,
       fallback: true
     };
   }
@@ -176,10 +187,10 @@ export async function createDonationPayment(
 // Check payment status with error handling
 export async function checkPaymentStatus(payloadId: string): Promise<any> {
   if (!isXummAvailable || !xumm) {
-    console.warn('XUMM not available, returning mock status');
+    console.warn('Xaman not available, returning mock status');
     return {
       status: 'pending',
-      message: 'XUMM integration disabled'
+      message: 'Xaman integration disabled'
     };
   }
 
@@ -202,7 +213,7 @@ export async function checkPaymentStatus(payloadId: string): Promise<any> {
 // Get payment QR code with fallback
 export async function getPaymentQRCode(payloadId: string): Promise<string> {
   if (!isXummAvailable || !xumm) {
-    console.warn('XUMM not available, returning fallback QR code');
+    console.warn('Xaman not available, returning fallback QR code');
     return `https://xumm.app/sign/${payloadId}`;
   }
 

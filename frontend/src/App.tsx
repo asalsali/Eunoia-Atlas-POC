@@ -2,16 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
-import DonorView from './components/DonorView';
+
 import DonationForm from './components/DonationForm';
 import CharityStaffView from './components/CharityStaffView';
 import SuperAdminView from './components/SuperAdminView';
-import Dashboard from './components/Dashboard';
+
 import Analytics from './components/Analytics';
 import Predictive from './components/Predictive';
 import DonorIntentForm from './components/DonorIntentForm';
 import WhisperFlow from './components/WhisperFlow';
+import RlusdDemo from './components/RlusdDemo';
 import './App.css';
+import { WalletProvider } from './context/WalletContext';
 
 // Component to handle role-based navigation
 const AppContent: React.FC = () => {
@@ -35,9 +37,9 @@ const AppContent: React.FC = () => {
 
   // Function to check if current route is valid for the selected role
   const isRouteValidForRole = (pathname: string, role: 'donor' | 'charity' | 'admin') => {
-    const donorRoutes = ['/', '/donor-dashboard', '/donate', '/donate-intent', '/whisper'];
+    const donorRoutes = ['/', '/donate-intent', '/whisper', '/demo-rlusd'];
     const charityRoutes = ['/charity', '/analytics', '/predictive'];
-    const adminRoutes = ['/admin', '/dashboard'];
+    const adminRoutes = ['/admin'];
 
     switch (role) {
       case 'donor':
@@ -78,10 +80,9 @@ const AppContent: React.FC = () => {
           <Route path="/" element={<LandingPage userRole={userRole} setUserRole={handleRoleChange} />} />
           
           {/* Donor Routes */}
-          <Route path="/donor-dashboard" element={<DonorView />} />
-          <Route path="/donate" element={<DonationForm />} />
           <Route path="/donate-intent" element={<DonorIntentForm />} />
           <Route path="/whisper" element={<WhisperFlow />} />
+          <Route path="/demo-rlusd" element={<RlusdDemo />} />
           
           {/* Charity Routes */}
           <Route path="/charity" element={<CharityStaffView />} />
@@ -90,7 +91,6 @@ const AppContent: React.FC = () => {
           
           {/* Admin Routes */}
           <Route path="/admin" element={<SuperAdminView />} />
-          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </main>
     </div>
@@ -100,7 +100,9 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <WalletProvider>
+        <AppContent />
+      </WalletProvider>
     </Router>
   );
 }
