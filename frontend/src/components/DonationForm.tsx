@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-// import { createDonationPayment, checkPaymentStatus } from '../services/xummService';
-import { Heart, CheckCircle, AlertCircle } from 'lucide-react';
-import { makeDonation } from '../services/api';
+import { createUserDonationPayload, checkUserPaymentStatus, userWalletStatus } from '../services/userWalletService';
+import { Heart, CheckCircle, AlertCircle, QrCode, Wallet } from 'lucide-react';
 import './DonationForm.css';
 
 interface DonationFormData {
@@ -9,6 +8,14 @@ interface DonationFormData {
   cid: string;
   amount: number;
   donor_email: string;
+}
+
+interface PaymentStatus {
+  payloadId: string;
+  qrCode: string;
+  status: 'pending' | 'completed' | 'error';
+  message: string;
+  transactionHash?: string;
 }
 
 const DonationForm: React.FC = () => {
@@ -22,6 +29,8 @@ const DonationForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
+  const [showQRCode, setShowQRCode] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -36,21 +45,68 @@ const DonationForm: React.FC = () => {
     setLoading(true);
     setError(null);
     setSuccess(null);
+    setPaymentStatus(null);
+    setShowQRCode(false);
 
     try {
-      const result = await makeDonation(formData);
-      setSuccess(`Donation successful! Transaction: ${result.tx}`);
-      setFormData({
-        charity: 'MEDA',
-        cid: '',
-        amount: 0,
-        donor_email: ''
-      });
+      // Get charity wallet address based on selection
+      const charityAddress = formData.charity === 'MEDA' 
+        ? 'r4jSjD22z6HtEu41eh1JrkD3KAW1PyM1RH' 
+        : 'rJXhFfZVLKBUfNQMZqssdqG3xj5JZFdqYm';
+
+      // Create user donation payload
+      const payload = await createUserDonationPayload(
+        charityAddress,
+        formData.amount,
+        formData.charity,
+        formData.cid,
+        formData.donor_email
+      );
+
+      if (payload.success) {
+        setPaymentStatus({
+          payloadId: payload.payloadId,
+          qrCode: payload.qrCode,
+          status: 'pending',
+          message: payload.message
+        });
+        setShowQRCode(true);
+      } else {
+        setError(payload.error || 'Failed to create payment payload');
+      }
     } catch (err) {
       setError('Failed to process donation. Please try again.');
       console.error('Donation error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkPaymentStatus = async () => {
+    if (!paymentStatus) return;
+
+    try {
+      const status = await checkUserPaymentStatus(paymentStatus.payloadId);
+      
+      if (status.status === 'completed' || status.signed) {
+        setPaymentStatus(prev => prev ? {
+          ...prev,
+          status: 'completed',
+          message: 'Payment completed successfully!',
+          transactionHash: status.transactionHash
+        } : null);
+        setSuccess(`Donation successful! Transaction: ${status.transactionHash || 'Completed'}`);
+        setShowQRCode(false);
+      } else if (status.status === 'error') {
+        setPaymentStatus(prev => prev ? {
+          ...prev,
+          status: 'error',
+          message: status.message
+        } : null);
+        setError('Payment failed. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error checking payment status:', err);
     }
   };
 
@@ -62,6 +118,13 @@ const DonationForm: React.FC = () => {
         <Heart className="donation-icon" />
         <h1>Make a Donation</h1>
         <p>Support our partner charities through secure blockchain transactions</p>
+        
+        {/* User Wallet Integration Status */}
+        <div className={`xumm-status ${userWalletStatus.isAvailable ? 'available' : 'fallback'}`}>
+          <span className="status-indicator"></span>
+          <Wallet className="wallet-icon" />
+          {userWalletStatus.message}
+        </div>
       </div>
 
       <div className="form-container">
@@ -137,6 +200,33 @@ const DonationForm: React.FC = () => {
             </div>
           )}
 
+          {paymentStatus && showQRCode && (
+            <div className="payment-qr-section">
+              <h3>Complete Your Donation</h3>
+              <p>Scan this QR code with your XUMM wallet to complete the payment:</p>
+              <div className="qr-container">
+                <img src={paymentStatus.qrCode} alt="Payment QR Code" className="qr-code" />
+              </div>
+              <div className="payment-actions">
+                <button
+                  type="button"
+                  onClick={checkPaymentStatus}
+                  className="btn check-status-btn"
+                >
+                  Check Payment Status
+                </button>
+                <a 
+                  href={paymentStatus.qrCode} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="btn open-xumm-btn"
+                >
+                  Open in XUMM
+                </a>
+              </div>
+            </div>
+          )}
+
           <button
             type="submit"
             className="btn submit-btn"
@@ -145,12 +235,12 @@ const DonationForm: React.FC = () => {
             {loading ? (
               <>
                 <div className="loading"></div>
-                Processing...
+                Creating Payment...
               </>
             ) : (
               <>
                 <Heart className="btn-icon" />
-                Make Donation
+                Create Donation Payment
               </>
             )}
           </button>
@@ -178,16 +268,16 @@ const DonationForm: React.FC = () => {
             <div className="step">
               <div className="step-number">3</div>
               <div className="step-content">
-                <h4>Blockchain Transaction</h4>
-                <p>Your donation is recorded on XRPL blockchain</p>
+                <h4>Connect Wallet</h4>
+                <p>Scan QR code with your XUMM wallet</p>
               </div>
             </div>
             
             <div className="step">
               <div className="step-number">4</div>
               <div className="step-content">
-                <h4>Confirmation</h4>
-                <p>Receive transaction confirmation and tracking</p>
+                <h4>Confirm Payment</h4>
+                <p>Sign and confirm the blockchain transaction</p>
               </div>
             </div>
           </div>

@@ -54,4 +54,32 @@ export const requestPayout = async (charity: string): Promise<any> => {
     console.error('Error requesting payout:', error);
     throw error;
   }
+};
+
+// New donor intent submission
+export interface DonorIntentRequest {
+  donorIntent: string;
+  amountFiat: number;
+  currency: 'CAD';
+  donorEmail: string;
+  isPublic: boolean;
+}
+
+export interface DonorIntentResponse {
+  success?: boolean;
+  transactionHash?: string;
+  transactionUrl?: string;
+  message?: string;
+}
+
+export const submitDonorIntent = async (
+  payload: DonorIntentRequest
+): Promise<DonorIntentResponse> => {
+  try {
+    const response = await api.post('/donations', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error submitting donor intent:', error);
+    throw error;
+  }
 }; 

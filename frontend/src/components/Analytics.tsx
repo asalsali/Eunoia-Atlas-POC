@@ -67,15 +67,15 @@ const Analytics: React.FC = () => {
       {
         label: 'MEDA',
         data: monthlyData.map(d => d.MEDA),
-        backgroundColor: '#667eea',
-        borderColor: '#667eea',
+        backgroundColor: '#a855f7',
+        borderColor: '#a855f7',
         borderWidth: 1,
       },
       {
         label: 'TARA',
         data: monthlyData.map(d => d.TARA),
-        backgroundColor: '#764ba2',
-        borderColor: '#764ba2',
+        backgroundColor: '#ec4899',
+        borderColor: '#ec4899',
         borderWidth: 1,
       },
     ],
@@ -86,7 +86,7 @@ const Analytics: React.FC = () => {
     datasets: [
       {
         data: [totals.MEDA || 0, totals.TARA || 0],
-        backgroundColor: ['#667eea', '#764ba2'],
+        backgroundColor: ['#a855f7', '#ec4899'],
         borderWidth: 0,
       },
     ],

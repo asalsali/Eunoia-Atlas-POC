@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, BarChart3, Home, Brain, Users, Settings, Building } from 'lucide-react';
+import { Heart, BarChart3, Home, Brain, Users, Settings, Building, MessageSquare } from 'lucide-react';
 import './Header.css';
 
 interface HeaderProps {
@@ -19,9 +19,17 @@ const Header: React.FC<HeaderProps> = ({ userRole = 'donor', setUserRole }) => {
         <Home size={20} />
         Home
       </Link>
+      <Link to="/donor-dashboard" className={`nav-link ${isActive('/donor-dashboard') ? 'active' : ''}`}>
+        <BarChart3 size={20} />
+        Dashboard
+      </Link>
       <Link to="/donate" className={`nav-link ${isActive('/donate') ? 'active' : ''}`}>
         <Heart size={20} />
         Donate
+      </Link>
+      <Link to="/whisper" className={`nav-link ${isActive('/whisper') ? 'active' : ''}`}>
+        <MessageSquare size={20} />
+        Share Story
       </Link>
     </>
   );
@@ -71,16 +79,11 @@ const Header: React.FC<HeaderProps> = ({ userRole = 'donor', setUserRole }) => {
             {userRole === 'admin' && renderAdminNav()}
           </nav>
 
-          <div className="role-selector">
-            <select 
-              value={userRole} 
-              onChange={(e) => setUserRole?.(e.target.value as 'donor' | 'charity' | 'admin')}
-              className="role-select"
-            >
-              <option value="donor">👤 Donor View</option>
-              <option value="charity">🏢 Charity Staff</option>
-              <option value="admin">⚙️ Super Admin</option>
-            </select>
+          <div className="user-info">
+            <span className="current-role">
+              {userRole === 'donor' ? '👤 Donor' : 
+               userRole === 'charity' ? '🏢 Charity' : '⚙️ Admin'}
+            </span>
           </div>
         </div>
       </div>

@@ -1,0 +1,103 @@
+/* DonorIntentForm.css */
+.intent-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.intent-card {
+  background: #fff;
+  border: 1px solid #f3e8ff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  padding: 20px;
+}
+
+.intent-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.intent-lead {
+  margin: 8px 0 16px;
+  color: #64748b;
+}
+
+.intent-field { margin-bottom: 16px; }
+
+.intent-label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.intent-input,
+.intent-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  outline: none;
+}
+
+.intent-textarea { resize: vertical; }
+
+.intent-help {
+  display: block;
+  margin-top: 6px;
+  color: #94a3b8;
+}
+
+.intent-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.intent-checkbox { width: 18px; height: 18px; }
+
+.intent-checkbox-label { color: #374151; }
+
+.intent-button {
+  width: 100%;
+  padding: 12px 16px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.intent-button:hover { background: #6d28d9; }
+
+.intent-button.disabled { opacity: 0.6; cursor: not-allowed; }
+
+.intent-error {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.intent-quote {
+  margin: 12px 0 20px;
+  padding: 12px 14px;
+  border-left: 4px solid #7c3aed;
+  background: #faf5ff;
+  color: #1e293b;
+  border-radius: 6px;
+}
+
+.intent-link {
+  color: #7c3aed;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
