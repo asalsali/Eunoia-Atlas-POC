@@ -10,11 +10,15 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "https://*.vercel.app", "https://*.netlify.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "message": "Eunoia Atlas API is running"}
 
 def get_db():
     return psycopg2.connect(os.getenv("POSTGRES_URL"))
