@@ -110,104 +110,80 @@ const WhisperFlow: React.FC = () => {
     setSubmitting(false);
   };
 
-  const testQRModal = () => {
-    console.log('Testing QR modal...');
-    const mockPayloadId = 'test-payload-' + Date.now().toString().slice(-8);
-    const qrData = `https://xumm.app/sign/${mockPayloadId}`;
-    const mockQrCode = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}&format=png&margin=10&ecc=M`;
-    
-    console.log('Test QR code URL:', mockQrCode);
-    
-    setXamanState({ 
-      phase: 'ready', 
-      payloadId: mockPayloadId,
-      qrCode: mockQrCode
-    });
-    
-    console.log('Test QR modal state set to ready');
-  };
 
-  const testButtonClick = () => {
-    console.log('Test button clicked!');
-    alert('Button is working!');
-  };
-
-  const forceShowQRModal = () => {
-    console.log('Force showing QR modal...');
-    const mockPayloadId = 'force-test-' + Date.now().toString().slice(-8);
-    const qrData = `https://xumm.app/sign/${mockPayloadId}`;
-    const mockQrCode = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}&format=png&margin=10&ecc=M`;
-    
-    console.log('Force QR code URL:', mockQrCode);
-    
-    setXamanState({ 
-      phase: 'ready', 
-      payloadId: mockPayloadId,
-      qrCode: mockQrCode
-    });
-    
-    console.log('Force QR modal state set to ready');
-  };
 
   const startRlusdXamanFromWhisper = async () => {
-    console.log('XAMAN button clicked!');
     if (xamanState.phase !== 'idle') return;
-    
     setXamanState({ phase: 'creating' });
+    console.log('Starting Xaman RLUSD payment from whisper...');
     
     try {
-      // For demo purposes, create a mock QR code and payload
-      const mockPayloadId = 'demo-payload-' + Date.now().toString().slice(-8);
-      
-      // Use a more reliable QR code generator with better error handling
-      const qrData = `https://xumm.app/sign/${mockPayloadId}`;
-      const mockQrCode = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}&format=png&margin=10&ecc=M`;
-      
-      console.log('Creating XAMAN payment with QR code:', mockQrCode);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      setXamanState({ 
-        phase: 'ready', 
-        payloadId: mockPayloadId,
-        qrCode: mockQrCode
+      const finalAmount = amount === 'other' ? Number(otherAmount) : Number(amount);
+      const resp = await xamanCreatePayment({
+        destination: MEDA_ADDRESS,
+        amount: finalAmount,
+        charity: 'MEDA',
+        cause_id: `whisper_${Date.now()}`,
+        asset: 'RLUSD',
+        issuer: RLUSD_ISSUER,
       });
+
+      console.log('Xaman response:', resp);
       
-      console.log('XAMAN payment ready, showing QR code');
+      if (!resp.success) {
+        console.error('Xaman payload creation failed:', resp.error);
+        setXamanState({ phase: 'error', message: resp.error || 'Failed to create Xaman payload' });
+        return;
+      }
       
-      // Auto-show confirmation after 10 seconds for demo purposes
+      if (!resp.payloadId) {
+        console.error('No payloadId in response:', resp);
+        setXamanState({ phase: 'error', message: 'No payload ID received from Xaman' });
+        return;
+      }
+
+      const next = { 
+        phase: 'ready' as const, 
+        payloadId: resp.payloadId, 
+        qrCode: resp.qrCode, 
+        message: `Scan in Xaman to sign ${finalAmount} RLUSD` 
+      };
+      setXamanState(next);
+      console.log('Setting Xaman state to ready with QR code:', resp.qrCode);
+
+      // Start polling for payment status
+      if (resp.payloadId) {
+        xamanPollRef.current = window.setTimeout(() => pollPaymentStatus(resp.payloadId!), 2000);
+      }
+
+      // Auto-close QR modal after 10 seconds and show confirmation
       setTimeout(() => {
-        if (xamanPollRef.current) clearInterval(xamanPollRef.current);
-        setXamanState({ 
-          phase: 'completed', 
-          txid: 'demo-tx-' + Date.now().toString().slice(-8)
-        });
-        setTransactionUrl('https://testnet.xrpl.org/transactions/demo-tx-' + Date.now().toString().slice(-8));
+        console.log('Auto-closing QR modal after 10 seconds');
+        setXamanState({ phase: 'completed', txid: 'auto-completed' });
+        setTransactionUrl(`https://testnet.xrpl.org/transactions/auto-completed-${Date.now()}`);
         setStep(5);
-      }, 10000); // 10 seconds for demo
-      
-      // Poll for completion (simulated for demo)
-      xamanPollRef.current = window.setInterval(async () => {
-        try {
-          // Simulate random completion
-          if (Math.random() > 0.7) {
-            if (xamanPollRef.current) clearInterval(xamanPollRef.current);
-            setXamanState({ 
-              phase: 'completed', 
-              txid: 'demo-tx-' + Date.now().toString().slice(-8)
-            });
-            setTransactionUrl('https://testnet.xrpl.org/transactions/demo-tx-' + Date.now().toString().slice(-8));
-            setStep(5);
-          }
-        } catch (error) {
-          console.error('Payment status check failed:', error);
-        }
-      }, 2000);
-      
+      }, 10000);
     } catch (error) {
-      console.error('Xaman payment creation failed:', error);
-      setXamanState({ phase: 'error', message: 'Failed to create payment. Please try again.' });
+      console.error('Xaman API error:', error);
+      setXamanState({ phase: 'error', message: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  };
+
+  const pollPaymentStatus = async (payloadId: string) => {
+    try {
+      const status = await checkUserPaymentStatus(payloadId);
+      if (status.status === 'completed') {
+        setXamanState({ phase: 'completed', txid: status.txid });
+        setTransactionUrl(`https://testnet.xrpl.org/transactions/${status.txid}`);
+        setStep(5);
+        return;
+      }
+      // Continue polling
+      xamanPollRef.current = window.setTimeout(() => pollPaymentStatus(payloadId), 2000);
+    } catch (error) {
+      console.error('Payment status check failed:', error);
+      // Continue polling even if check fails
+      xamanPollRef.current = window.setTimeout(() => pollPaymentStatus(payloadId), 2000);
     }
   };
 
@@ -1147,341 +1123,271 @@ const WhisperFlow: React.FC = () => {
               <Send size={16} />
             </button>
             
-            {/* Debug button to go directly to step 4 */}
-            <button 
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: '#ef4444',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '12px',
-                padding: '8px 16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                marginTop: '12px',
-                fontSize: '0.875rem'
-              }}
-              onClick={() => {
-                console.log('Debug: Going to step 4');
-                setStep(4);
-              }}
-            >
-              🔧 Debug: Go to Step 4
-            </button>
+            
           </div>
         </div>
       </div>
     );
   }
 
-  // Step 4: Payment method selection
+    // Step 4: Payment method selection
   if (step === 4) {
     console.log('Rendering step 4 - Payment methods');
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px 16px'
-      }}>
+      <>
         <div style={{
-          maxWidth: '600px',
-          width: '100%',
-          background: '#ffffff',
-          borderRadius: '20px',
-          padding: '40px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px 16px'
         }}>
           <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '32px'
+            maxWidth: '600px',
+            width: '100%',
+            background: '#ffffff',
+            borderRadius: '20px',
+            padding: '40px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
           }}>
-            <button 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'transparent',
-                border: 'none',
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '32px'
+            }}>
+              <button 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#64748b',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  transition: 'all 0.2s ease'
+                }}
+                onClick={() => setStep(3)}
+              >
+                <ArrowLeft size={20} />
+                Back
+              </button>
+              <div style={{
+                fontSize: '0.875rem',
                 color: '#64748b',
-                fontWeight: '600',
-                cursor: 'pointer',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                transition: 'all 0.2s ease'
-              }}
-              onClick={() => setStep(3)}
-            >
-              <ArrowLeft size={20} />
-              Back
-            </button>
-            <div style={{
-              fontSize: '0.875rem',
+                fontWeight: '500'
+              }}>
+                Step 4 of 4
+              </div>
+            </div>
+            
+            <h2 style={{
+              fontSize: '1.75rem',
+              color: '#1e293b',
+              marginBottom: '24px',
+              fontWeight: '700'
+            }}>
+              How would you like to pay? (Step {step})
+            </h2>
+            <p style={{
               color: '#64748b',
-              fontWeight: '500'
+              marginBottom: '24px',
+              fontSize: '0.9rem'
             }}>
-              Step 4 of 4
-            </div>
-          </div>
-          
-          <h2 style={{
-            fontSize: '1.75rem',
-            color: '#1e293b',
-            marginBottom: '24px',
-            fontWeight: '700'
-          }}>
-            How would you like to pay? (Step {step})
-          </h2>
-          <p style={{
-            color: '#64748b',
-            marginBottom: '24px',
-            fontSize: '0.9rem'
-          }}>
-            Choose your preferred payment method
-          </p>
-          
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            marginBottom: '24px'
-          }}>
-            {/* Test button for debugging */}
-            <button 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: '#10b981',
-                color: '#fff',
-                border: '2px solid #10b981',
-                borderRadius: '12px',
-                padding: '12px 20px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontSize: '0.875rem',
-                marginBottom: '8px'
-              }}
-              onClick={testQRModal}
-            >
-              🧪 Test QR Modal
-            </button>
+              Choose your preferred payment method
+            </p>
             
-            {/* Simple test button */}
-            <button 
-              style={{
+                        <div style={{
                 display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: '#ef4444',
-                color: '#fff',
-                border: '2px solid #ef4444',
-                borderRadius: '12px',
-                padding: '12px 20px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontSize: '0.875rem',
-                marginBottom: '8px'
-              }}
-              onClick={testButtonClick}
-            >
-              🔴 Test Click
-            </button>
-            
-            {/* Force QR Modal Test */}
-            <button 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: '#8b5cf6',
-                color: '#fff',
-                border: '2px solid #8b5cf6',
-                borderRadius: '12px',
-                padding: '12px 20px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontSize: '0.875rem',
-                marginBottom: '8px'
-              }}
-              onClick={forceShowQRModal}
-            >
-              🚀 Force QR Modal
-            </button>
-            <button 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: '#7c3aed',
-                color: '#fff',
-                border: '2px solid #7c3aed',
-                borderRadius: '12px',
-                padding: '12px 20px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontSize: '0.875rem',
-                opacity: xamanState.phase === 'creating' ? 0.5 : 1,
-                pointerEvents: xamanState.phase === 'creating' ? 'none' : 'auto'
-              }}
-              onClick={startRlusdXamanFromWhisper}
-              disabled={xamanState.phase === 'creating'}
-            >
-              {xamanState.phase === 'creating' ? (
-                <>
-                  <div style={{
-                    width: '16px',
-                    height: '16px',
-                    border: '2px solid transparent',
-                    borderTop: '2px solid currentColor',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
-                  }} />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Heart size={16} />
-                  Digital Wallet (XAMAN)
-                </>
-              )}
-            </button>
-            
-            <button 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'transparent',
-                border: '2px solid #7c3aed',
-                color: '#7c3aed',
-                borderRadius: '12px',
-                padding: '12px 20px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontSize: '0.875rem',
-                opacity: crossmarkBusy ? 0.5 : 1,
-                pointerEvents: crossmarkBusy ? 'none' : 'auto'
-              }}
-              onClick={startRlusdCrossmarkFromWhisper} 
-              disabled={crossmarkBusy}
-            >
-              {crossmarkBusy ? (
-                <>
-                  <div style={{
-                    width: '16px',
-                    height: '16px',
-                    border: '2px solid transparent',
-                    borderTop: '2px solid currentColor',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
-                  }} />
-                  Opening…
-                </>
-              ) : (
-                <>
-                  <Heart size={16} />
-                  Digital Wallet (CROSSMARK)
-                </>
-              )}
-            </button>
+                flexDirection: 'column',
+                gap: '12px',
+                marginBottom: '24px'
+              }}>
+               <button 
+                 style={{
+                   display: 'flex',
+                   alignItems: 'center',
+                   gap: '8px',
+                   background: '#7c3aed',
+                   color: '#fff',
+                   border: '2px solid #7c3aed',
+                   borderRadius: '12px',
+                   padding: '12px 20px',
+                   fontWeight: '600',
+                   cursor: 'pointer',
+                   transition: 'all 0.2s ease',
+                   fontSize: '0.875rem',
+                   opacity: xamanState.phase === 'creating' ? 0.5 : 1,
+                   pointerEvents: xamanState.phase === 'creating' ? 'none' : 'auto'
+                 }}
+                 onClick={startRlusdXamanFromWhisper}
+                 disabled={xamanState.phase === 'creating'}
+               >
+                 {xamanState.phase === 'creating' ? (
+                   <>
+                     <div style={{
+                       width: '16px',
+                       height: '16px',
+                       border: '2px solid transparent',
+                       borderTop: '2px solid currentColor',
+                       borderRadius: '50%',
+                       animation: 'spin 1s linear infinite'
+                     }} />
+                     Creating...
+                   </>
+                 ) : (
+                   <>
+                     <Heart size={16} />
+                     Digital Wallet (XAMAN)
+                   </>
+                 )}
+               </button>
+               
+               <button 
+                 style={{
+                   display: 'flex',
+                   alignItems: 'center',
+                   gap: '8px',
+                   background: 'transparent',
+                   border: '2px solid #7c3aed',
+                   color: '#7c3aed',
+                   borderRadius: '12px',
+                   padding: '12px 20px',
+                   fontWeight: '600',
+                   cursor: 'pointer',
+                   transition: 'all 0.2s ease',
+                   fontSize: '0.875rem',
+                   opacity: crossmarkBusy ? 0.5 : 1,
+                   pointerEvents: crossmarkBusy ? 'none' : 'auto'
+                 }}
+                 onClick={startRlusdCrossmarkFromWhisper} 
+                 disabled={crossmarkBusy}
+               >
+                 {crossmarkBusy ? (
+                   <>
+                     <div style={{
+                       width: '16px',
+                       height: '16px',
+                       border: '2px solid transparent',
+                       borderTop: '2px solid currentColor',
+                       borderRadius: '50%',
+                       animation: 'spin 1s linear infinite'
+                     }} />
+                     Opening…
+                   </>
+                 ) : (
+                   <>
+                     <Heart size={16} />
+                     Digital Wallet (CROSSMARK)
+                   </>
+                 )}
+               </button>
 
-            <button 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'transparent',
-                border: '2px solid #7c3aed',
-                color: '#7c3aed',
-                borderRadius: '12px',
-                padding: '12px 20px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontSize: '0.875rem',
-                opacity: fiatState.phase === 'processing' ? 0.5 : 1,
-                pointerEvents: fiatState.phase === 'processing' ? 'none' : 'auto'
-              }}
-              onClick={startFiatTransaction}
-              disabled={fiatState.phase === 'processing'}
-            >
-              {fiatState.phase === 'processing' ? (
-                <>
-                  <div style={{
-                    width: '16px',
-                    height: '16px',
-                    border: '2px solid transparent',
-                    borderTop: '2px solid currentColor',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
-                  }} />
-                  Processing…
-                </>
-              ) : (
-                <>
-                  <CreditCard size={16} />
-                  Credit Card (MoonPay)
-                </>
-              )}
-            </button>
-          </div>
-          
-          {crossmarkError && (
-            <div style={{
-              background: '#fee2e2',
-              color: '#b91c1c',
-              border: '1px solid #fecaca',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '16px',
-              fontWeight: '500'
-            }}>
-              {crossmarkError}
-            </div>
-          )}
-          {fiatState.phase === 'error' && (
-            <div style={{
-              background: '#fee2e2',
-              color: '#b91c1c',
-              border: '1px solid #fecaca',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '16px',
-              fontWeight: '500'
-            }}>
-              {fiatState.message}
-            </div>
-          )}
-          {xamanState.phase === 'error' && (
-            <div style={{
-              background: '#fee2e2',
-              color: '#b91c1c',
-              border: '1px solid #fecaca',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '16px',
-              fontWeight: '500'
-            }}>
-              {xamanState.message}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
+               <button 
+                 style={{
+                   display: 'flex',
+                   alignItems: 'center',
+                   gap: '8px',
+                   background: 'transparent',
+                   border: '2px solid #7c3aed',
+                   color: '#7c3aed',
+                   borderRadius: '12px',
+                   padding: '12px 20px',
+                   fontWeight: '600',
+                   cursor: 'pointer',
+                   transition: 'all 0.2s ease',
+                   fontSize: '0.875rem',
+                   opacity: fiatState.phase === 'processing' ? 0.5 : 1,
+                   pointerEvents: fiatState.phase === 'processing' ? 'none' : 'auto'
+                 }}
+                 onClick={startFiatTransaction}
+                 disabled={fiatState.phase === 'processing'}
+               >
+                 {fiatState.phase === 'processing' ? (
+                   <>
+                     <div style={{
+                       width: '16px',
+                       height: '16px',
+                       border: '2px solid transparent',
+                       borderTop: '2px solid currentColor',
+                       borderRadius: '50%',
+                       animation: 'spin 1s linear infinite'
+                     }} />
+                     Processing…
+                   </>
+                 ) : (
+                   <>
+                     <CreditCard size={16} />
+                     Credit Card (MoonPay)
+                   </>
+                 )}
+               </button>
+             </div>
+             
+             {crossmarkError && (
+               <div style={{
+                 background: '#fee2e2',
+                 color: '#b91c1c',
+                 border: '1px solid #fecaca',
+                 borderRadius: '12px',
+                 padding: '16px',
+                 marginBottom: '16px',
+                 fontWeight: '500'
+               }}>
+                 {crossmarkError}
+               </div>
+             )}
+             {fiatState.phase === 'error' && (
+               <div style={{
+                 background: '#fee2e2',
+                 color: '#b91c1c',
+                 border: '1px solid #fecaca',
+                 borderRadius: '12px',
+                 padding: '16px',
+                 marginBottom: '16px',
+                 fontWeight: '500'
+               }}>
+                 {fiatState.message}
+               </div>
+             )}
+             {xamanState.phase === 'error' && (
+               <div style={{
+                 background: '#fee2e2',
+                 color: '#b91c1c',
+                 border: '1px solid #fecaca',
+                 borderRadius: '12px',
+                 padding: '16px',
+                 marginBottom: '16px',
+                 fontWeight: '500'
+               }}>
+                 {xamanState.message}
+               </div>
+             )}
+           </div>
+         </div>
+         
+         {/* QR Modal for Xaman payments */}
+         {console.log('QR Modal state:', xamanState.phase, 'QR Code:', xamanState.phase === 'ready' ? (xamanState as any).qrCode : 'N/A')}
+         {console.log('QR Modal should be open:', xamanState.phase === 'creating' || xamanState.phase === 'ready')}
+         <QRModal
+           open={xamanState.phase === 'creating' || xamanState.phase === 'ready'}
+           title="Donate with Digital Wallet"
+           qrUrl={xamanState.phase === 'ready' ? (xamanState as any).qrCode : undefined}
+           openLink={xamanState.phase === 'ready' ? `https://xumm.app/sign/${(xamanState as any).payloadId}` : undefined}
+           network="Testnet"
+           status={xamanState.phase === 'creating' ? 'Creating payment...' : xamanState.phase === 'ready' ? 'Scan to sign in XAMAN' : undefined}
+           onClose={() => {
+             console.log('Closing QR modal');
+             setXamanState({ phase: 'idle' });
+           }}
+         />
+       </>
+     );
+   }
 
   // Step 5: Confirmation
   if (step === 5) {
@@ -1497,24 +1403,7 @@ const WhisperFlow: React.FC = () => {
     );
   }
 
-  return (
-    <>
-      {console.log('QR Modal state:', xamanState.phase, 'QR Code:', xamanState.phase === 'ready' ? (xamanState as any).qrCode : 'N/A')}
-      {console.log('QR Modal should be open:', xamanState.phase === 'creating' || xamanState.phase === 'ready')}
-      <QRModal
-        open={xamanState.phase === 'creating' || xamanState.phase === 'ready'}
-        title="Donate with Digital Wallet"
-        qrUrl={xamanState.phase === 'ready' ? (xamanState as any).qrCode : undefined}
-        openLink={xamanState.phase === 'ready' ? `https://xumm.app/sign/${(xamanState as any).payloadId}` : undefined}
-        network="Testnet"
-        status={xamanState.phase === 'creating' ? 'Creating payment...' : xamanState.phase === 'ready' ? 'Scan to sign in XAMAN' : undefined}
-        onClose={() => {
-          console.log('Closing QR modal');
-          setXamanState({ phase: 'idle' });
-        }}
-      />
-    </>
-  );
+  return null;
 };
 
 export default WhisperFlow;

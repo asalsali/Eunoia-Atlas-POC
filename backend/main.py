@@ -160,6 +160,9 @@ async def xaman_create_payment(req: XamanPaymentRequest):
     if not api_key or not api_secret:
         return {"success": False, "error": "Xaman API credentials missing"}
 
+    print(f"Xaman API Key: {api_key[:8]}...")
+    print(f"Xaman API Secret: {api_secret[:8]}...")
+
     # Build memo
     memo_hex = json.dumps({
         "transactionId": f"srv_{req.cause_id}",
@@ -185,6 +188,8 @@ async def xaman_create_payment(req: XamanPaymentRequest):
             "issuer": req.issuer or "rQhWct2fv4Vc4KRjRgMrxa8xPN9Zx9iLKV",
         }
 
+    print(f"Xaman request txjson: {json.dumps(txjson, indent=2)}")
+
     try:
         resp = requests.post(
             "https://xumm.app/api/v1/platform/payload",
@@ -196,6 +201,9 @@ async def xaman_create_payment(req: XamanPaymentRequest):
             json={"txjson": txjson}
         )
         data = resp.json()
+        print(f"Xaman API response status: {resp.status_code}")
+        print(f"Xaman API response: {json.dumps(data, indent=2)}")
+        
         if resp.status_code >= 400:
             return {"success": False, "error": data.get("error", str(data))}
         return {
@@ -205,6 +213,51 @@ async def xaman_create_payment(req: XamanPaymentRequest):
             "refs": data.get("refs", {})
         }
     except Exception as e:
+        print(f"Xaman API exception: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/xaman/payload/{payload_id}")
+async def xaman_check_payload(payload_id: str):
+    """
+    Check the status of a Xaman payload using server-side API credentials.
+    """
+    api_key = os.getenv("XAMAN_API_KEY") or os.getenv("XUMM_API_KEY")
+    api_secret = os.getenv("XAMAN_API_SECRET") or os.getenv("XUMM_API_SECRET")
+    if not api_key or not api_secret:
+        return {"success": False, "error": "Xaman API credentials missing"}
+
+    try:
+        resp = requests.get(
+            f"https://xumm.app/api/v1/platform/payload/{payload_id}",
+            headers={
+                "X-API-Key": api_key,
+                "X-API-Secret": api_secret,
+                "Content-Type": "application/json",
+            }
+        )
+        data = resp.json()
+        print(f"Xaman payload check response: {json.dumps(data, indent=2)}")
+        
+        if resp.status_code >= 400:
+            return {"success": False, "error": data.get("error", str(data))}
+        
+        # Check if payload is signed
+        if data.get("response"):
+            return {
+                "success": True,
+                "completed": True,
+                "txid": data.get("response", {}).get("txid"),
+                "account": data.get("response", {}).get("account"),
+                "status": "completed"
+            }
+        else:
+            return {
+                "success": True,
+                "completed": False,
+                "status": "pending"
+            }
+    except Exception as e:
+        print(f"Xaman payload check exception: {e}")
         return {"success": False, "error": str(e)}
 
 @app.get("/totals")

@@ -15,6 +15,22 @@
     {
       "source": "/payout/*",
       "destination": "http://api:8000/payout/*"
+    },
+    {
+      "source": "/donations",
+      "destination": "http://api:8000/donations"
+    },
+    {
+      "source": "/demo/*",
+      "destination": "http://api:8000/demo/*"
+    },
+    {
+      "source": "/xumm/*",
+      "destination": "http://api:8000/xumm/*"
+    },
+    {
+      "source": "/xaman/*",
+      "destination": "http://api:8000/xaman/*"
     }
   ]
 } 

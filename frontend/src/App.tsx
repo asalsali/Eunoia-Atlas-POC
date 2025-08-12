@@ -12,6 +12,7 @@ import Predictive from './components/Predictive';
 import DonorIntentForm from './components/DonorIntentForm';
 import WhisperFlow from './components/WhisperFlow';
 import RlusdDemo from './components/RlusdDemo';
+import XamanRlusdDemo from './components/XamanRlusdDemo';
 import './App.css';
 import { WalletProvider } from './context/WalletContext';
 
@@ -37,9 +38,9 @@ const AppContent: React.FC = () => {
 
   // Function to check if current route is valid for the selected role
   const isRouteValidForRole = (pathname: string, role: 'donor' | 'charity' | 'admin') => {
-    const donorRoutes = ['/', '/donate-intent', '/whisper', '/demo-rlusd'];
-    const charityRoutes = ['/charity', '/analytics', '/predictive'];
-    const adminRoutes = ['/admin'];
+    const donorRoutes = ['/', '/donate-intent', '/whisper', '/demo-rlusd', '/xaman-demo'];
+    const charityRoutes = ['/charity', '/analytics', '/predictive', '/xaman-demo'];
+    const adminRoutes = ['/admin', '/xaman-demo'];
 
     switch (role) {
       case 'donor':
@@ -83,6 +84,7 @@ const AppContent: React.FC = () => {
           <Route path="/donate-intent" element={<DonorIntentForm />} />
           <Route path="/whisper" element={<WhisperFlow />} />
           <Route path="/demo-rlusd" element={<RlusdDemo />} />
+          <Route path="/xaman-demo" element={<XamanRlusdDemo />} />
           
           {/* Charity Routes */}
           <Route path="/charity" element={<CharityStaffView />} />

@@ -109,22 +109,31 @@ export async function createUserDonationPayload(
 
 // Check user payment status
 export async function checkUserPaymentStatus(payloadId: string): Promise<any> {
-  if (!isXummAvailable || !xumm) {
-    console.warn('Xaman not available, returning mock status');
-    return {
-      status: 'pending',
-      message: 'User wallet (Xaman) integration disabled'
-    };
-  }
-
   try {
-    const payload = await xumm.payload.get(payloadId);
-    return {
-      status: payload?.response?.account || 'pending',
-      signed: !!payload?.response,
-      message: payload?.response ? 'Payment completed' : 'Payment pending',
-      transactionHash: payload?.response?.txid || null
-    };
+    const response = await fetch(`/xaman/payload/${payloadId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return {
+        status: data.status,
+        completed: data.completed,
+        txid: data.txid,
+        account: data.account,
+        message: data.completed ? 'Payment completed' : 'Payment pending'
+      };
+    } else {
+      throw new Error(data.error || 'Failed to check payment status');
+    }
   } catch (error) {
     console.error('Error checking user payment status:', error);
     return {
